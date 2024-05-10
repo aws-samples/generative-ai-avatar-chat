@@ -1,0 +1,19 @@
+{
+  "name": "rag-avatar-demo",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "lint": "npx prettier --write .",
+    "cdk:deploy": "npm exec -w cdk -- cdk deploy --all -O output.json",
+    "cdk:destroy": "npm exec -w cdk -- cdk destroy --all",
+    "web:dev": "npm run dev -w web",
+    "web:build": "npm run build -w web"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "prettier": "^3.1.1",
+    "prettier-plugin-tailwindcss": "^0.5.9"
+  }
+}

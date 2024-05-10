@@ -1,0 +1,6 @@
+{
+  "name": "@types/rag-avatar-demo",
+  "version": "1.0.0",
+  "types": "src/index.d.ts",
+  "private": true
+}

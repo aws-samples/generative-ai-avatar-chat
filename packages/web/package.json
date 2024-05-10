@@ -1,0 +1,52 @@
+{
+  "name": "web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity": "^3.454.0",
+    "@aws-sdk/client-lambda": "^3.454.0",
+    "@aws-sdk/client-transcribe-streaming": "^3.462.0",
+    "@aws-sdk/credential-provider-cognito-identity": "^3.454.0",
+    "@babylonjs/core": "^6.30.0",
+    "@babylonjs/gui": "^6.30.0",
+    "@babylonjs/loaders": "^6.30.0",
+    "@headlessui/react": "^1.7.17",
+    "babylonjs-loaders": "^6.30.0",
+    "i18next": "^23.7.6",
+    "immer": "^10.0.3",
+    "microphone-stream": "^6.0.1",
+    "react": "^18.2.0",
+    "react-babylonjs": "^3.1.26",
+    "react-dom": "^18.2.0",
+    "react-i18next": "^13.5.0",
+    "react-icons": "^4.12.0",
+    "readable-stream": "^4.4.2",
+    "stream-browserify": "^3.0.0",
+    "tailwind-merge": "^2.1.0",
+    "zustand": "^4.4.6"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@types/readable-stream": "^4.0.9",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.53.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.4",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0"
+  }
+}
