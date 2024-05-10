@@ -1,4 +1,4 @@
-# RAG Avatar Demo
+# Generative AI Avatar Chat
 
 [README in English](README_en.md)
 
