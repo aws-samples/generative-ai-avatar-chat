@@ -140,3 +140,9 @@ npm run cdk:deploy
     ```bash
     npm run web:dev
     ```
+
+## Contributors
+
+[Yusuke Wada](https://github.com/wadabee)
+
+[Tatsuya Shimada](https://github.com/tatshima)
