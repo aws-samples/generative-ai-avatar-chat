@@ -140,3 +140,9 @@ Note that these steps assume that your local PC is set up for React development.
     ```bash
     npm run web:dev
     ```
+
+## Contributors
+
+[Yusuke Wada](https://github.com/wadabee)
+
+[Tatsuya Shimada](https://github.com/tatshima)
