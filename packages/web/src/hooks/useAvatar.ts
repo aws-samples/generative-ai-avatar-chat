@@ -132,9 +132,6 @@ const useAvatar = () => {
     startSpeech: () => {
       speech();
     },
-    startIdle: () => {
-      idleAnimation?.start(true);
-    },
     setModel,
   };
 };

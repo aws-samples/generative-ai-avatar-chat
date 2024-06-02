@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { Engine, Scene } from 'react-babylonjs';
 import { Color4, Vector3 } from '@babylonjs/core';
@@ -23,12 +23,8 @@ const App: React.FC = () => {
 
   const { recording } = useTranscribeStreamingState();
 
-  const { startThinking, stopThinking, startSpeech, startIdle } = useAvatar();
+  const { startThinking, stopThinking, startSpeech } = useAvatar();
   const { answerText, question } = useQuestion();
-
-  useEffect(() => {
-    startIdle();
-  }, [startIdle]); 
 
   const onSendQuestion = useCallback(
     (questionContent: string) => {
