@@ -15,9 +15,11 @@ export class RagAvatarStack extends cdk.Stack {
 
     const kendraIndex = new KendraIndex(this, 'KendraIndex');
 
-    new S3DataSource(this, 'S3DataSource', {
+    const dataSource = new S3DataSource(this, 'S3DataSource', {
       index: kendraIndex.index,
     });
+
+    dataSource.node.addDependency(kendraIndex);
 
     const api = new Api(this, 'Api', {
       bedrockRegion,
