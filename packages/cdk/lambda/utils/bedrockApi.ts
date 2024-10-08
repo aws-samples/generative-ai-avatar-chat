@@ -1,6 +1,8 @@
 import {
   BedrockRuntimeClient,
-  InvokeModelWithResponseStreamCommand,
+  ConversationRole,
+  ConverseStreamCommand,
+  InferenceConfiguration
 } from '@aws-sdk/client-bedrock-runtime';
 
 const client = new BedrockRuntimeClient({
@@ -9,42 +11,34 @@ const client = new BedrockRuntimeClient({
 
 const modelId = process.env.BEDROCK_MODELID;
 
-const PARAMS = {
-  max_tokens_to_sample: 300,
+const inferenceConfig: InferenceConfiguration = {
+  maxTokens: 300,
   temperature: 0,
-  top_k: 250,
-  top_p: 0.999,
-  anthropic_version: 'bedrock-2023-05-31',
+  topP: 0.999
 };
 
 const bedrockApi = {
   invokeStream: async function* (prompt: string) {
-    const command = new InvokeModelWithResponseStreamCommand({
+    const conversation = [
+      {
+        role: ConversationRole.USER,
+        content: [{text: prompt}],
+      },
+    ];
+    const command = new ConverseStreamCommand({
       modelId: modelId,
-      body: JSON.stringify({
-        prompt: prompt,
-        ...PARAMS,
-      }),
-      contentType: 'application/json',
+      messages: conversation,
+      inferenceConfig,
     });
     const res = await client.send(command);
 
-    if (!res.body) {
+    if (!res.stream) {
       return;
     }
 
-    for await (const streamChunk of res.body) {
-      if (!streamChunk.chunk?.bytes) {
-        break;
-      }
-      const body = JSON.parse(
-        new TextDecoder('utf-8').decode(streamChunk.chunk?.bytes)
-      );
-      if (body.completion) {
-        yield body.completion;
-      }
-      if (body.stop_reason) {
-        break;
+    for await (const item of res.stream) {
+      if (item.contentBlockDelta) {
+        yield item.contentBlockDelta.delta?.text || '';
       }
     }
   },
