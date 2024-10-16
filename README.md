@@ -32,9 +32,9 @@ CDK を実行するためには、 AWS の Credential を設定する必要が�
 > [!IMPORTANT]
 > 本リポジトリで利用する Anthropic Claude モデルの利用は事前申請が必要です。 [Model access 画面 (ap-northeast-1)](https://ap-northeast-1.console.aws.amazon.com/bedrock/home?region=ap-northeast-1#/modelaccess)を開き、Anthropic Claude Instant にチェックして Save changes してください。利用するリージョンとモデル単位で申請が必要なので、ご注意ください。
 
-デフォルトでは、東京リージョン（`ap-northeast-1`）の `Claude Instant` モデルを利用する設定になっています。もし、利用するリージョンとモデルを変更したい場合は、`packages/cdk/cdk.json` の `bedrock-region` と `bedrock-model-id` を変更してください。
+デフォルトでは、東京リージョン（`ap-northeast-1`）の `Claude Instant` モデルを利用する設定になっています。もし、利用するリージョンとモデルを変更したい場合は、`packages/cdk/cdk.json` の `bedrock-region` と `bedrock-model-id` を変更してください。モデルIDは[こちら](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html)をご参照ください。
 
-**こちらのリポジトリは、`anthropic.claude-instant-v1`、`anthropic.claude-v2`、`anthropic.claude-v2:1` のみ対応しています。他のモデルは利用できませんので、ご注意ください。**
+**こちらのリポジトリは、[Amazon Bedrock Converse API に対応しているモデル](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html)ならばいずれも使用可能です。**
 
 ### デプロイ手順
 

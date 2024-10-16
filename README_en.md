@@ -31,9 +31,9 @@ To execute CDK, it is necessary to set up AWS credentials. Please follow the ste
 > [!IMPORTANT]
 > Prior application is necessary to use the Anthropic Claude model in this repository. Open the [Model access screen (ap-northeast-1)](https://ap-northeast-1.console.aws.amazon.com/bedrock/home?region=ap-northeast-1#/modelaccess), check Anthropic Claude Instant and Save changes. Please note that application is required for each region and model you wish to use.
 
-By default, the `Claude Instant` model in the Tokyo region (`ap-northeast-1`) is set for use. If you wish to change the region and model used, please modify `bedrock-region` and `bedrock-model-id` in `packages/cdk/cdk.json`.
+By default, the `Claude Instant` model in the Tokyo region (`ap-northeast-1`) is set for use. If you wish to change the region and model used, please modify `bedrock-region` and `bedrock-model-id` in `packages/cdk/cdk.json`. Model IDs can be found [here](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
 
-**This repository only supports `anthropic.claude-instant-v1`, `anthropic.claude-v2`, and `anthropic.claude-v2:1`. Other models are not supported.**
+**This repository is compatible with any model supported by the [Amazon Bedrock Converse API](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html).**
 
 ### Deployment Steps
 
