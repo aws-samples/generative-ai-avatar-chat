@@ -18,7 +18,7 @@
   },
   "context": {
     "bedrock-region": "ap-northeast-1",
-    "bedrock-model-id": "anthropic.claude-instant-v1",
+    "bedrock-model-id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": [
