@@ -28,7 +28,7 @@
     "@aws-sdk/client-kendra": "^3.454.0",
     "@aws-sdk/client-translate": "^3.458.0",
     "@types/rag-avatar-demo": "^1.0.0",
-    "aws-cdk-lib": "^2.97.1",
+    "aws-cdk-lib": "^2.186.0",
     "constructs": "^10.0.0",
     "deploy-time-build": "^0.3.8",
     "langchain": "^0.2.19",
