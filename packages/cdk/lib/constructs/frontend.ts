@@ -1,15 +1,9 @@
-import { Construct } from 'constructs';
-import { CfnOutput, RemovalPolicy, Stack } from 'aws-cdk-lib';
-import {
-  BlockPublicAccess,
-  Bucket,
-  BucketEncryption,
-} from 'aws-cdk-lib/aws-s3';
-import {
-  CloudFrontWebDistribution,
-  OriginAccessIdentity,
-} from 'aws-cdk-lib/aws-cloudfront';
+import { CfnOutput, RemovalPolicy, Stack, Duration } from 'aws-cdk-lib';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as cloudfront_origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import { NodejsBuild } from 'deploy-time-build';
+import { Construct } from 'constructs';
 
 export interface FrontendProps {
   readonly questionStreamFunctionArn: string;
@@ -17,48 +11,37 @@ export interface FrontendProps {
 }
 
 export class Frontend extends Construct {
-  readonly cloudFrontWebDistribution: CloudFrontWebDistribution;
+  readonly distribution: cloudfront.Distribution;
+
   constructor(scope: Construct, id: string, props: FrontendProps) {
     super(scope, id);
 
-    const assetBucket = new Bucket(this, 'AssetBucket', {
-      encryption: BucketEncryption.S3_MANAGED,
-      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+    const assetBucket = new s3.Bucket(this, 'AssetBucket', {
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       enforceSSL: true,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
     });
+    const s3Origin = cloudfront_origins.S3BucketOrigin.withOriginAccessIdentity(assetBucket);
 
-    const originAccessIdentity = new OriginAccessIdentity(
-      this,
-      'OriginAccessIdentity'
-    );
-    const distribution = new CloudFrontWebDistribution(this, 'Distribution', {
-      originConfigs: [
+    this.distribution = new cloudfront.Distribution(this, 'Distribution', {
+      defaultBehavior: {
+        origin: s3Origin,
+      },
+      defaultRootObject: 'index.html',
+      errorResponses: [
         {
-          s3OriginSource: {
-            s3BucketSource: assetBucket,
-            originAccessIdentity,
-          },
-          behaviors: [
-            {
-              isDefaultBehavior: true,
-            },
-          ],
-        },
-      ],
-      errorConfigurations: [
-        {
-          errorCode: 404,
-          errorCachingMinTtl: 0,
-          responseCode: 200,
-          responsePagePath: '/',
+          httpStatus: 404,
+          responseHttpStatus: 200,
+          responsePagePath: '/index.html',
+          ttl: Duration.seconds(0),
         },
         {
-          errorCode: 403,
-          errorCachingMinTtl: 0,
-          responseCode: 200,
-          responsePagePath: '/',
+          httpStatus: 403,
+          responseHttpStatus: 200,
+          responsePagePath: '/index.html',
+          ttl: Duration.seconds(0),
         },
       ],
     });
@@ -87,13 +70,13 @@ export class Frontend extends Construct {
       },
       outputSourceDirectory: './packages/web/dist',
       destinationBucket: assetBucket,
-      distribution,
+      distribution: this.distribution,
+      nodejsVersion: 22,
     });
 
     new CfnOutput(this, 'CloudFrontURL', {
       description: 'CloudFrontURL',
-      value: `https://${distribution.distributionDomainName}`,
+      value: `https://${this.distribution.distributionDomainName}`,
     });
-    this.cloudFrontWebDistribution = distribution;
   }
 }
