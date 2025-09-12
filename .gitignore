@@ -1,1 +1,25 @@
-node_modules
+# Dependencies
+node_modules/
+
+# Environment variables
+.env.local
+.env
+
+# Build outputs
+dist/
+build/
+cdk.out/
+
+# CDK outputs
+output.json
+cdk.context.json
+
+# OS files
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log

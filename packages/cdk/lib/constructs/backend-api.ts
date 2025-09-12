@@ -1,7 +1,7 @@
 import { Duration, aws_kendra, CfnOutput, Token } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import * as idPool from '@aws-cdk/aws-cognito-identitypool-alpha';
+import * as idPool from 'aws-cdk-lib/aws-cognito-identitypool';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 
@@ -38,7 +38,7 @@ export class Api extends Construct {
     );
 
     const questionStreamFunction = new NodejsFunction(this, 'StreamQuestion', {
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_22_X,
       entry: './lambda/streamQuestion.ts',
       timeout: Duration.minutes(15),
       environment: {
