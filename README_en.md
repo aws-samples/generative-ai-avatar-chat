@@ -31,7 +31,7 @@ To execute CDK, it is necessary to set up AWS credentials. Please follow the ste
 > [!IMPORTANT]
 > Prior application is necessary to use the Anthropic Claude model in this repository. Open the [Model access screen (ap-northeast-1)](https://ap-northeast-1.console.aws.amazon.com/bedrock/home?region=ap-northeast-1#/modelaccess), check Anthropic Claude Instant and Save changes. Please note that application is required for each region and model you wish to use.
 
-By default, the `Claude Instant` model in the Tokyo region (`ap-northeast-1`) is set for use. If you wish to change the region and model used, please modify `bedrock-region` and `bedrock-model-id` in `packages/cdk/cdk.json`. Model IDs can be found [here](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
+By default, the `Claude 3-5 Sonnet` model in the Tokyo region (`ap-northeast-1`) is set for use. If you wish to change the region and model used, please modify `bedrock-region` and `bedrock-model-id` in `packages/cdk/cdk.json`. Model IDs can be found [here](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
 
 **This repository is compatible with any model supported by the [Amazon Bedrock Converse API](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html).**
 
@@ -146,3 +146,5 @@ Note that these steps assume that your local PC is set up for React development.
 [Yusuke Wada](https://github.com/wadabee)
 
 [Tatsuya Shimada](https://github.com/tatshima)
+
+[Shota Nakamoto](https://github.com/nsxshotaws)
