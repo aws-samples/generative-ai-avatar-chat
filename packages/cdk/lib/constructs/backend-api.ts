@@ -32,7 +32,7 @@ export class Api extends Construct {
     identityPool.unauthenticatedRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: ['transcribe:*'],
+        actions: ['transcribe:*', 'polly:*'],
         resources: ['*'],
       })
     );

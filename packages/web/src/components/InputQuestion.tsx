@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fa6';
 import useTranscribeStreaming from '../hooks/useTranscribeStreaming';
 import ButtonIcon from './ButtonIcon';
+import { stopSpeech } from '../hooks/usePollyApi';
 
 const IDENTITY_POOL_ID = import.meta.env.VITE_APP_IDENTITY_POOL_ID!;
 const REGION = import.meta.env.VITE_APP_REGION!;
@@ -34,6 +35,7 @@ const InputQuestion: React.FC<Props> = (props) => {
         e.preventDefault();
 
         if (!disabledSend) {
+          stopSpeech();
           props.onSend(props.content);
         }
       }
@@ -58,14 +60,21 @@ const InputQuestion: React.FC<Props> = (props) => {
   useEffect(() => {
     for (const t of transcripts) {
       if (!t.isPartial) {
+        stopSpeech();
         props.onSend(t.transcripts.join(' '));
         setTranscript('');
+        stopRecording(); // Sendしたら録音を停止
       } else {
         setTranscript(t.transcripts.join(' '));
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transcripts]);
+
+  const handleStartRecording = () => {
+    stopSpeech();
+    startRecording();
+  };
 
   return (
     <div className={`${props.className ?? ''} relative`}>
@@ -78,7 +87,7 @@ const InputQuestion: React.FC<Props> = (props) => {
           ) : (
             <div>
               <ButtonIcon
-                onClick={startRecording}
+                onClick={handleStartRecording}
                 disabled={(props.transcribeLanguageCode ?? '') === ''}>
                 <FaMicrophone />
               </ButtonIcon>
@@ -115,6 +124,7 @@ const InputQuestion: React.FC<Props> = (props) => {
           disabled={disabledSend}
           square
           onClick={() => {
+            stopSpeech();
             props.onSend(props.content);
           }}>
           <FaPaperPlane />
