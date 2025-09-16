@@ -4,7 +4,7 @@ import { Engine, Scene } from 'react-babylonjs';
 import { Color4, Vector3 } from '@babylonjs/core';
 import Avatar from './components/Avatar';
 import useAvatar from './hooks/useAvatar';
-import useQuestion from './hooks/useQuestion';
+import useQuestion, { useQuestionState } from './hooks/useQuestion';
 import InputQuestion from './components/InputQuestion';
 import { produce } from 'immer';
 import Select from './components/Select';
@@ -13,6 +13,7 @@ import './i18n';
 import { LANGUAGE_OPTIONS } from './i18n';
 import { useTranslation } from 'react-i18next';
 import { useTranscribeStreamingState } from './hooks/useTranscribeStreaming';
+import VoiceOutputToggle from './components/VoiceOutputToggle';
 
 const App: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -25,6 +26,14 @@ const App: React.FC = () => {
 
   const { startThinking, stopThinking, startSpeech } = useAvatar();
   const { answerText, question } = useQuestion();
+  const { setVoiceOutputEnabled, voiceOutputEnabled } = useQuestionState();
+
+  const handleVoiceOutputToggle = useCallback(
+    (enabled: boolean) => {
+      setVoiceOutputEnabled(enabled);
+    },
+    [setVoiceOutputEnabled]
+  );
 
   const onSendQuestion = useCallback(
     (questionContent: string) => {
@@ -74,6 +83,10 @@ const App: React.FC = () => {
     <div className="bg-background-white text-text-black relative">
       <div className="relative h-screen w-screen">
         <div className="absolute right-5 top-5 z-30 flex items-center">
+          <VoiceOutputToggle
+            initialValue={voiceOutputEnabled}
+            onToggle={handleVoiceOutputToggle}
+          />
           <PiGlobe className="mr-2 text-xl" />
           <Select
             className="w-36"

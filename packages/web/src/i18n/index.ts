@@ -25,7 +25,7 @@ export const LANGUAGE_OPTIONS = [
     code: 'vi',
     // "vi-VN" is NOT supported stream transcription.
     // https://docs.aws.amazon.com/ja_jp/transcribe/latest/dg/supported-languages.html
-    transcribeCode: '',
+    transcribeCode: 'vi-VN',
   },
   {
     label: '简体中文',

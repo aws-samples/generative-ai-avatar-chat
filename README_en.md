@@ -8,7 +8,7 @@ This is a sample implementation of a Generative AI chatbot with a 3D avatar as t
 
 ## Architecture
 
-<img src="docs/picture/architecture_v4.png" width="600">
+<img src="docs/picture/architecture_v5.png" width="600">
 
 ## Deployment
 
@@ -34,6 +34,15 @@ To execute CDK, it is necessary to set up AWS credentials. Please follow the ste
 By default, the `Claude 3-5 Sonnet` model in the Tokyo region (`ap-northeast-1`) is set for use. If you wish to change the region and model used, please modify `bedrock-region` and `bedrock-model-id` in `packages/cdk/cdk.json`. Model IDs can be found [here](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
 
 **This repository is compatible with any model supported by the [Amazon Bedrock Converse API](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html).**
+
+#### RAG Type Configuration
+
+This application supports two options for RAG (Retrieval-Augmented Generation) implementation:
+
+- **Knowledgebase** (default): Uses Amazon Bedrock Knowledge Base
+- **Kendra**: Uses Amazon Kendra
+
+The default is set to `knowledgebase`. If you want to use Kendra, change the `ragType` in `packages/cdk/cdk.json` to `"kendra"`.
 
 ### Deployment Steps
 
@@ -79,7 +88,20 @@ npm run cdk:deploy
 
 ### Document Reflection Procedure
 
-Documents are searchable using Amazon Kendra (hereafter referred to as Kendra). To reflect documents in this application, it is necessary to perform a `Sync` with Kendra. Please follow the steps below to `Sync`.
+The document reflection procedure varies depending on the selected RAG type.
+
+#### Knowledge Base
+
+When using Amazon Bedrock Knowledge Base, follow the steps below to reflect documents.
+
+1. Access the [Bedrock Knowledge Base Console](https://ap-northeast-1.console.aws.amazon.com/bedrock/home?region=ap-northeast-1#/knowledge-bases) and open `rag-avatar-kb`.
+2. Select `rag-avatar-kb-datasource` listed in the "Data sources" section.
+3. Press the "Sync" button to reflect the documents.
+4. If the sync history status shows "Completed", the documents are searchable.
+
+#### Kendra
+
+When using Amazon Kendra, it is necessary to perform a `Sync` with Kendra to reflect documents. Please follow the steps below to `Sync`.
 
 1. Access the [Kendra Console](https://ap-northeast-1.console.aws.amazon.com/kendra/home?region=ap-northeast-1#indexes) and open `rag-avatar-index`.
 2. Open the `Data sources` page and open `s3-data-source`.
@@ -89,7 +111,8 @@ Documents are searchable using Amazon Kendra (hereafter referred to as Kendra). 
 
 1. Store the documents in `packages/cdk/docs`.
 2. Redeploy the application as per the `Redeployment Procedure` (the documents will be uploaded automatically).
-3. Perform a `Sync` as per the above document reflection procedure.
+3. **For Knowledge Base**: Perform a `Sync` as per the above document reflection procedure.
+4. **For Kendra**: Perform a `Sync` as per the above document reflection procedure.
 
 ### Cleanup Procedure
 

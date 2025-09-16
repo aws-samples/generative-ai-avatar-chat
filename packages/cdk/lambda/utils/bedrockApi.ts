@@ -2,7 +2,7 @@ import {
   BedrockRuntimeClient,
   ConversationRole,
   ConverseStreamCommand,
-  InferenceConfiguration
+  InferenceConfiguration,
 } from '@aws-sdk/client-bedrock-runtime';
 
 const client = new BedrockRuntimeClient({
@@ -14,7 +14,7 @@ const modelId = process.env.BEDROCK_MODELID;
 const inferenceConfig: InferenceConfiguration = {
   maxTokens: 300,
   temperature: 0,
-  topP: 0.999
+  topP: 0.999,
 };
 
 const bedrockApi = {
@@ -22,7 +22,7 @@ const bedrockApi = {
     const conversation = [
       {
         role: ConversationRole.USER,
-        content: [{text: prompt}],
+        content: [{ text: prompt }],
       },
     ];
     const command = new ConverseStreamCommand({

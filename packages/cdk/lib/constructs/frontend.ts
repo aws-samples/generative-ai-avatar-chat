@@ -23,7 +23,8 @@ export class Frontend extends Construct {
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
     });
-    const s3Origin = cloudfront_origins.S3BucketOrigin.withOriginAccessIdentity(assetBucket);
+    const s3Origin =
+      cloudfront_origins.S3BucketOrigin.withOriginAccessIdentity(assetBucket);
 
     this.distribution = new cloudfront.Distribution(this, 'Distribution', {
       defaultBehavior: {
