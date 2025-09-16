@@ -29,11 +29,19 @@ const useAvatarState = create<{
       set({
         ...(model.animationGroups
           ? {
-            idleAnimation: model.animationGroups.find(anim => anim.name === 'Idle'),
-            raisingHandAnimation: model.animationGroups.find(anim => anim.name === 'RaiseHand'),
-            raisingHandToIdleAnimation: model.animationGroups.find(anim => anim.name === 'RaiseToIdle'),
-            thinkingAnimation: model.animationGroups.find(anim => anim.name === 'Thinking'),
-          }
+              idleAnimation: model.animationGroups.find(
+                (anim) => anim.name === 'Idle'
+              ),
+              raisingHandAnimation: model.animationGroups.find(
+                (anim) => anim.name === 'RaiseHand'
+              ),
+              raisingHandToIdleAnimation: model.animationGroups.find(
+                (anim) => anim.name === 'RaiseToIdle'
+              ),
+              thinkingAnimation: model.animationGroups.find(
+                (anim) => anim.name === 'Thinking'
+              ),
+            }
           : {
               idleAnimation: undefined,
               raisingHandAnimation: undefined,

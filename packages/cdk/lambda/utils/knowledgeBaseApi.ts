@@ -1,4 +1,7 @@
-import { BedrockAgentRuntimeClient, RetrieveCommand } from '@aws-sdk/client-bedrock-agent-runtime';
+import {
+  BedrockAgentRuntimeClient,
+  RetrieveCommand,
+} from '@aws-sdk/client-bedrock-agent-runtime';
 
 const client = new BedrockAgentRuntimeClient({
   region: process.env.BEDROCK_REGION,
@@ -20,7 +23,9 @@ export interface KendraCompatibleResult {
   }>;
 }
 
-export const retrieve = async (query: string): Promise<KendraCompatibleResult> => {
+export const retrieve = async (
+  query: string
+): Promise<KendraCompatibleResult> => {
   if (!KNOWLEDGE_BASE_ID) {
     throw new Error('KNOWLEDGE_BASE_ID environment variable is not set');
   }
@@ -40,38 +45,40 @@ export const retrieve = async (query: string): Promise<KendraCompatibleResult> =
 
   try {
     const response = await client.send(command);
-    
+
     // Knowledge Baseの結果をKendraの形式に変換
     // レスポンス形式は retrievalResults を使用
     const kendraCompatibleResult: KendraCompatibleResult = {
-      ResultItems: response.retrievalResults?.map(item => ({
-        DocumentId: item.location?.s3Location?.uri || 
-                   item.location?.webLocation?.url || 
-                   item.location?.confluenceLocation?.url ||
-                   item.location?.salesforceLocation?.url ||
-                   item.location?.sharePointLocation?.url ||
-                   item.location?.customDocumentLocation?.id ||
-                   item.location?.kendraDocumentLocation?.uri ||
-                   item.location?.sqlLocation?.query ||
-                   'unknown',
-        DocumentTitle: item.location?.s3Location?.uri || 
-                      item.location?.webLocation?.url || 
-                      item.location?.confluenceLocation?.url ||
-                      item.location?.salesforceLocation?.url ||
-                      item.location?.sharePointLocation?.url ||
-                      item.location?.customDocumentLocation?.id ||
-                      item.location?.kendraDocumentLocation?.uri ||
-                      item.location?.sqlLocation?.query ||
-                      'unknown',
+      ResultItems: response.retrievalResults?.map((item) => ({
+        DocumentId:
+          item.location?.s3Location?.uri ||
+          item.location?.webLocation?.url ||
+          item.location?.confluenceLocation?.url ||
+          item.location?.salesforceLocation?.url ||
+          item.location?.sharePointLocation?.url ||
+          item.location?.customDocumentLocation?.id ||
+          item.location?.kendraDocumentLocation?.uri ||
+          item.location?.sqlLocation?.query ||
+          'unknown',
+        DocumentTitle:
+          item.location?.s3Location?.uri ||
+          item.location?.webLocation?.url ||
+          item.location?.confluenceLocation?.url ||
+          item.location?.salesforceLocation?.url ||
+          item.location?.sharePointLocation?.url ||
+          item.location?.customDocumentLocation?.id ||
+          item.location?.kendraDocumentLocation?.uri ||
+          item.location?.sqlLocation?.query ||
+          'unknown',
         DocumentExcerpt: {
-          Text: item.content?.text || ''
+          Text: item.content?.text || '',
         },
         ScoreAttributes: {
-          ScoreConfidence: item.score || 0
-        }
-      }))
+          ScoreConfidence: item.score || 0,
+        },
+      })),
     };
-    
+
     return kendraCompatibleResult;
   } catch (error) {
     console.error('Error retrieving from Knowledge Base:', error);

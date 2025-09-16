@@ -1,10 +1,5 @@
-import {
-  RemovalPolicy,
-  aws_s3,
-  aws_s3_deployment,
-} from 'aws-cdk-lib';
+import { RemovalPolicy, aws_s3, aws_s3_deployment } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-
 
 export class S3BucketWithDocs extends Construct {
   public readonly bucket: aws_s3.Bucket;
@@ -21,13 +16,10 @@ export class S3BucketWithDocs extends Construct {
 
     // Upload contents of docs folder to S3
     new aws_s3_deployment.BucketDeployment(this, 'DeployDocs', {
-      sources: [
-        aws_s3_deployment.Source.asset('./docs'),
-      ],
+      sources: [aws_s3_deployment.Source.asset('./docs')],
       destinationBucket: docsBucket,
     });
 
     this.bucket = docsBucket;
   }
 }
-

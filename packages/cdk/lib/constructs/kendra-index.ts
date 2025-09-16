@@ -9,7 +9,7 @@ export class KendraIndex extends Construct {
   public readonly index: aws_kendra.CfnIndex;
   public readonly dataSourceRole: aws_iam.Role;
   public readonly dataSource: aws_kendra.CfnDataSource;
-  
+
   constructor(scope: Construct, id: string, props: KendraIndexProps) {
     super(scope, id);
 

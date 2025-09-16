@@ -3,7 +3,10 @@ import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity';
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-provider-cognito-identity';
 import { LANGUAGE_OPTIONS } from '../i18n';
 
-type TranscribeCode = Exclude<typeof LANGUAGE_OPTIONS[number]['transcribeCode'], ''>;
+type TranscribeCode = Exclude<
+  (typeof LANGUAGE_OPTIONS)[number]['transcribeCode'],
+  ''
+>;
 
 const region = import.meta.env.VITE_APP_REGION;
 const idPoolId = import.meta.env.VITE_APP_IDENTITY_POOL_ID;

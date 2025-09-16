@@ -61,11 +61,11 @@ const useQuestion = () => {
   const { t } = useTranslation();
   const { questionStream } = useQuestionApi();
   const { startIdle } = useAvatar();
-  
+
   const setStart = () => {
     startIdle();
   };
-  
+
   const resetConv = () => {
     setAnswerText(t('message.initial'));
     resetSession(); // 新しいセッションを開始

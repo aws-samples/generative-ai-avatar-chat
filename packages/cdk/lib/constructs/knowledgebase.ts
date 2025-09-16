@@ -8,7 +8,6 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 
 const UUID = '339C5FED-A1B5-43B6-B40A-5E8E59E5734D';
 
-
 const MODEL_VECTOR_MAPPING: { [key: string]: string } = {
   'amazon.titan-embed-text-v1': '1536',
   'amazon.titan-embed-text-v2:0': '1024',

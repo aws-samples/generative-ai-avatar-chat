@@ -1,4 +1,10 @@
-import { Duration, aws_kendra, aws_bedrock, CfnOutput, Token } from 'aws-cdk-lib';
+import {
+  Duration,
+  aws_kendra,
+  aws_bedrock,
+  CfnOutput,
+  Token,
+} from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as idPool from 'aws-cdk-lib/aws-cognito-identitypool';
@@ -47,12 +53,14 @@ export class Api extends Construct {
         BEDROCK_REGION: props.bedrockRegion,
         BEDROCK_MODELID: props.bedrockModelId,
         RAG_TYPE: props.ragType,
-        ...(props.ragType === 'kendra' && props.kendraIndex && {
-          KENDRA_INDEX_ID: props.kendraIndex.attrId,
-        }),
-        ...(props.ragType === 'knowledgebase' && props.knowledgeBase && {
-          KNOWLEDGE_BASE_ID: props.knowledgeBase.ref,
-        }),
+        ...(props.ragType === 'kendra' &&
+          props.kendraIndex && {
+            KENDRA_INDEX_ID: props.kendraIndex.attrId,
+          }),
+        ...(props.ragType === 'knowledgebase' &&
+          props.knowledgeBase && {
+            KNOWLEDGE_BASE_ID: props.knowledgeBase.ref,
+          }),
       },
       bundling: {
         externalModules: [],

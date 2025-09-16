@@ -20,7 +20,7 @@ const VoiceOutputToggle: React.FC<VoiceOutputToggleProps> = ({
 
   return (
     <button
-      className="rounded bg-gray-200 p-3 text-gray-800 hover:bg-gray-300 transition-colors"
+      className="rounded bg-gray-200 p-3 text-gray-800 transition-colors hover:bg-gray-300"
       onClick={handleToggle}
       title={voiceOutput ? '音声出力: ON' : '音声出力: OFF'}>
       {voiceOutput ? (
@@ -31,6 +31,5 @@ const VoiceOutputToggle: React.FC<VoiceOutputToggleProps> = ({
     </button>
   );
 };
-
 
 export default VoiceOutputToggle;

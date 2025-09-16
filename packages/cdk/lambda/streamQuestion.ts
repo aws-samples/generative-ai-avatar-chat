@@ -38,7 +38,9 @@ export const handler = awslambda.streamifyResponse(
     } else if (ragType === 'knowledgebase') {
       documents = (await knowledgeBaseApi.retrieve(question)).ResultItems ?? [];
     } else {
-      throw new Error(`Unsupported RAG type: ${ragType}. Must be 'kendra' or 'knowledgebase'`);
+      throw new Error(
+        `Unsupported RAG type: ${ragType}. Must be 'kendra' or 'knowledgebase'`
+      );
     }
 
     const prompt = ragPrompt.qaPrompt(documents, question, event.questionLang);
