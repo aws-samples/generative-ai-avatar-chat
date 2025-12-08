@@ -21,5 +21,9 @@ cdk.context.json
 .vscode/
 .idea/
 
+# Kiro temporary files
+.kiro/specs/
+.kiro/settings/
+
 # Logs
 *.log
