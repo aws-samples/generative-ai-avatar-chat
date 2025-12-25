@@ -8,7 +8,8 @@ import {
 } from 'react-icons/fa6';
 import useTranscribeStreaming from '../hooks/useTranscribeStreaming';
 import ButtonIcon from './ButtonIcon';
-import { stopSpeech } from '../hooks/usePollyApi';
+import { audioPlayer } from '../utils/AudioPlayer';
+import useAvatar from '../hooks/useAvatar';
 
 const IDENTITY_POOL_ID = import.meta.env.VITE_APP_IDENTITY_POOL_ID!;
 const REGION = import.meta.env.VITE_APP_REGION!;
@@ -24,6 +25,7 @@ type Props = {
 
 const InputQuestion: React.FC<Props> = (props) => {
   const { t } = useTranslation();
+  const { transitionTo, startListeningAnimation, startIdleAnimation } = useAvatar();
   const disabledSend = useMemo(() => {
     return props.content === '' || props.disabled;
   }, [props.content, props.disabled]);
@@ -35,7 +37,7 @@ const InputQuestion: React.FC<Props> = (props) => {
         e.preventDefault();
 
         if (!disabledSend) {
-          stopSpeech();
+          audioPlayer.stop();
           props.onSend(props.content);
         }
       }
@@ -60,7 +62,7 @@ const InputQuestion: React.FC<Props> = (props) => {
   useEffect(() => {
     for (const t of transcripts) {
       if (!t.isPartial) {
-        stopSpeech();
+        audioPlayer.stop();
         props.onSend(t.transcripts.join(' '));
         setTranscript('');
         stopRecording(); // Sendしたら録音を停止
@@ -72,8 +74,16 @@ const InputQuestion: React.FC<Props> = (props) => {
   }, [transcripts]);
 
   const handleStartRecording = () => {
-    stopSpeech();
+    audioPlayer.stop();
+    transitionTo('listening');
+    startListeningAnimation();
     startRecording();
+  };
+
+  const handleStopRecording = () => {
+    stopRecording();
+    transitionTo('idle');
+    startIdleAnimation();
   };
 
   return (
@@ -81,7 +91,7 @@ const InputQuestion: React.FC<Props> = (props) => {
       <div className="border-primary/50 flex h-20 items-center justify-between rounded-3xl border-2 bg-white">
         <div className="mx-5">
           {recording ? (
-            <ButtonIcon onClick={stopRecording}>
+            <ButtonIcon onClick={handleStopRecording}>
               <FaMicrophoneSlash />
             </ButtonIcon>
           ) : (
@@ -124,7 +134,7 @@ const InputQuestion: React.FC<Props> = (props) => {
           disabled={disabledSend}
           square
           onClick={() => {
-            stopSpeech();
+            audioPlayer.stop();
             props.onSend(props.content);
           }}>
           <FaPaperPlane />

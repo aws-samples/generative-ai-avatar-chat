@@ -1,17 +1,28 @@
-import { aws_kendra, aws_iam, aws_s3, CfnOutput } from 'aws-cdk-lib';
+import { aws_kendra, aws_iam, aws_s3, aws_s3_deployment, CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-
-export interface KendraIndexProps {
-  dataSourceBucket: aws_s3.IBucket;
-}
 
 export class KendraIndex extends Construct {
   public readonly index: aws_kendra.CfnIndex;
   public readonly dataSourceRole: aws_iam.Role;
   public readonly dataSource: aws_kendra.CfnDataSource;
+  public readonly dataSourceBucket: aws_s3.Bucket;
 
-  constructor(scope: Construct, id: string, props: KendraIndexProps) {
+  constructor(scope: Construct, id: string) {
     super(scope, id);
+
+    // Kendra専用のS3バケットを作成
+    const dataSourceBucket = new aws_s3.Bucket(this, 'KendraDocsBucket', {
+      versioned: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+    });
+
+    // ドキュメントをアップロード
+    new aws_s3_deployment.BucketDeployment(this, 'DeployKendraDocs', {
+      sources: [aws_s3_deployment.Source.asset('./docs/kendra')],
+      destinationBucket: dataSourceBucket,
+    });
 
     const indexRole = new aws_iam.Role(this, 'KendraIndexRole', {
       assumedBy: new aws_iam.ServicePrincipal('kendra.amazonaws.com'),
@@ -38,7 +49,7 @@ export class KendraIndex extends Construct {
     dataSourceRole.addToPolicy(
       new aws_iam.PolicyStatement({
         effect: aws_iam.Effect.ALLOW,
-        resources: [`arn:aws:s3:::${props.dataSourceBucket.bucketName}`],
+        resources: [`arn:aws:s3:::${dataSourceBucket.bucketName}`],
         actions: ['s3:ListBucket'],
       })
     );
@@ -46,7 +57,7 @@ export class KendraIndex extends Construct {
     dataSourceRole.addToPolicy(
       new aws_iam.PolicyStatement({
         effect: aws_iam.Effect.ALLOW,
-        resources: [`arn:aws:s3:::${props.dataSourceBucket.bucketName}/*`],
+        resources: [`arn:aws:s3:::${dataSourceBucket.bucketName}/*`],
         actions: ['s3:GetObject'],
       })
     );
@@ -75,7 +86,7 @@ export class KendraIndex extends Construct {
       languageCode: 'ja',
       dataSourceConfiguration: {
         s3Configuration: {
-          bucketName: props.dataSourceBucket.bucketName,
+          bucketName: dataSourceBucket.bucketName,
         },
       },
     });
@@ -91,5 +102,6 @@ export class KendraIndex extends Construct {
     this.index = index;
     this.dataSourceRole = dataSourceRole;
     this.dataSource = dataSource;
+    this.dataSourceBucket = dataSourceBucket;
   }
 }

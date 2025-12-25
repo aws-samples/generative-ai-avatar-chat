@@ -28,6 +28,7 @@
     "react-dom": "^19.0.0",
     "react-i18next": "^15.0.0",
     "react-icons": "^5.0.0",
+    "react-markdown": "^10.1.0",
     "readable-stream": "^4.4.2",
     "stream-browserify": "^3.0.0",
     "tailwind-merge": "^2.5.0",

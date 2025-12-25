@@ -14,7 +14,8 @@ import { Construct } from 'constructs';
 export interface ApiProps {
   bedrockRegion: string;
   bedrockModelId: string;
-  ragType: 'kendra' | 'knowledgebase';
+  enableKendra: boolean;
+  enableKnowledgeBase: boolean;
   kendraIndex?: aws_kendra.CfnIndex;
   knowledgeBase?: aws_bedrock.CfnKnowledgeBase;
 }
@@ -52,22 +53,27 @@ export class Api extends Construct {
       environment: {
         BEDROCK_REGION: props.bedrockRegion,
         BEDROCK_MODELID: props.bedrockModelId,
-        RAG_TYPE: props.ragType,
-        ...(props.ragType === 'kendra' &&
+        ENABLE_KENDRA: props.enableKendra ? 'true' : 'false',
+        ENABLE_KNOWLEDGE_BASE: props.enableKnowledgeBase ? 'true' : 'false',
+        DEBUG: 'true', // デバッグログを有効化（本番環境では'false'に設定）
+        ...(props.enableKendra &&
           props.kendraIndex && {
             KENDRA_INDEX_ID: props.kendraIndex.attrId,
           }),
-        ...(props.ragType === 'knowledgebase' &&
+        ...(props.enableKnowledgeBase &&
           props.knowledgeBase && {
             KNOWLEDGE_BASE_ID: props.knowledgeBase.ref,
           }),
       },
       bundling: {
-        externalModules: [],
-        // nodeModules: ['@aws-sdk/client-bedrock-runtime'],
+        externalModules: ['@aws-sdk/*'],
+        forceDockerBundling: false,
+        minify: false,
+        sourceMap: true,
       },
     });
-    if (props.ragType === 'kendra' && props.kendraIndex) {
+    
+    if (props.enableKendra && props.kendraIndex) {
       questionStreamFunction.role?.addToPrincipalPolicy(
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
@@ -77,7 +83,7 @@ export class Api extends Construct {
       );
     }
 
-    if (props.ragType === 'knowledgebase' && props.knowledgeBase) {
+    if (props.enableKnowledgeBase && props.knowledgeBase) {
       questionStreamFunction.role?.addToPrincipalPolicy(
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
@@ -92,7 +98,7 @@ export class Api extends Construct {
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         resources: ['*'],
-        actions: ['bedrock:*', 'logs:*', 'translate:*'],
+        actions: ['bedrock:*', 'logs:*'],
       })
     );
     questionStreamFunction.grantInvoke(identityPool.unauthenticatedRole);

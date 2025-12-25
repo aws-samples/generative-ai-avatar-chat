@@ -4,6 +4,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as bedrock from 'aws-cdk-lib/aws-bedrock';
 import * as oss from 'aws-cdk-lib/aws-opensearchserverless';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as s3_deployment from 'aws-cdk-lib/aws-s3-deployment';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
 const UUID = '339C5FED-A1B5-43B6-B40A-5E8E59E5734D';
@@ -61,17 +62,26 @@ class OpenSearchServerlessIndex extends Construct {
   }
 }
 
-export interface BedrockKnowledgeBaseProps {
-  readonly dataSourceBucket: s3.IBucket;
-}
-
 export class BedrockKnowledgeBase extends Construct {
   public readonly knowledgeBase: bedrock.CfnKnowledgeBase;
+  public readonly dataSourceBucket: s3.Bucket;
 
-  constructor(scope: Construct, id: string, props: BedrockKnowledgeBaseProps) {
+  constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    const { dataSourceBucket } = props;
+    // Knowledge Base専用のS3バケットを作成
+    const dataSourceBucket = new s3.Bucket(this, 'KBDocsBucket', {
+      versioned: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+    });
+
+    // ドキュメントをアップロード
+    new s3_deployment.BucketDeployment(this, 'DeployKBDocs', {
+      sources: [s3_deployment.Source.asset('./docs/kb')],
+      destinationBucket: dataSourceBucket,
+    });
 
     const collectionName = 'rag-avatar-kb-collection';
     const vectorIndexName = 'rag-avatar-kb-vector-index';
@@ -268,6 +278,7 @@ export class BedrockKnowledgeBase extends Construct {
     knowledgeBase.node.addDependency(aossIndex.customResource);
 
     this.knowledgeBase = knowledgeBase;
+    this.dataSourceBucket = dataSourceBucket;
 
     new cdk.CfnOutput(this, 'KnowledgeBaseId', {
       description: 'KnowledgeBaseId',

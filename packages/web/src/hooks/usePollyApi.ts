@@ -1,9 +1,10 @@
-import { LanguageCode, Polly } from '@aws-sdk/client-polly';
+import { LanguageCode, Polly, VoiceId } from '@aws-sdk/client-polly';
 import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity';
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-provider-cognito-identity';
 import { LANGUAGE_OPTIONS } from '../i18n';
+import { audioPlayer } from '../utils/AudioPlayer';
 
-type TranscribeCode = Exclude<
+export type TranscribeCode = Exclude<
   (typeof LANGUAGE_OPTIONS)[number]['transcribeCode'],
   ''
 >;
@@ -29,48 +30,52 @@ async function initPolly() {
 
 const pollyPromise = initPolly();
 
-let audioContext: AudioContext | null = null;
-let source: AudioBufferSourceNode | null = null;
-
-export async function speakText(text: string, transcribeCode: TranscribeCode) {
-  stopSpeech();
-  audioContext = new AudioContext();
+/**
+ * Polly APIを使って音声を合成
+ * @param text - 合成するテキスト
+ * @param voiceId - 使用する音声ID
+ * @param languageCode - 言語コード
+ * @returns 音声ストリーム
+ */
+export async function synthesizeSpeech(
+  text: string,
+  voiceId: VoiceId,
+  languageCode: LanguageCode
+): Promise<ReadableStream> {
   const polly = await pollyPromise;
 
-  try {
-    const data = await polly.synthesizeSpeech({
-      OutputFormat: 'mp3',
-      Text: text,
-      VoiceId: transcribeCode === 'ja-JP' ? 'Tomoko' : 'Joanna',
-      Engine: 'neural',
-      LanguageCode: transcribeCode as LanguageCode,
-    });
-    const audioBuffer = await data.AudioStream;
-    console.log(transcribeCode);
+  const data = await polly.synthesizeSpeech({
+    OutputFormat: 'mp3',
+    Text: text,
+    VoiceId: voiceId,
+    Engine: 'neural',
+    LanguageCode: languageCode,
+  });
 
-    // const audioContext = new AudioContext();
-    audioContext.decodeAudioData(
-      await new Response(audioBuffer as BodyInit).arrayBuffer(),
-      (buffer) => {
-        const source = audioContext!.createBufferSource();
-        source.buffer = buffer;
-        source.connect(audioContext!.destination);
-        source.start();
-      }
-    );
-  } catch (err) {
-    console.error('エラーが発生しました:', err);
-  }
+  return data.AudioStream as ReadableStream;
 }
 
-export function stopSpeech() {
-  if (source) {
-    source.stop();
-    source.disconnect();
-    source = null;
-  }
-  if (audioContext) {
-    audioContext.close();
-    audioContext = null;
+/**
+ * テキストを合成して再生
+ * VoiceQueueから呼ばれる関数
+ * @param text - 合成するテキスト
+ * @param transcribeCode - 言語コード
+ * @returns 再生完了時にresolveするPromise
+ */
+export async function synthesizeAndPlaySegment(
+  text: string,
+  transcribeCode: TranscribeCode
+): Promise<void> {
+  try {
+    const voiceId: VoiceId = transcribeCode === 'ja-JP' ? 'Tomoko' : 'Joanna';
+    const audioStream = await synthesizeSpeech(
+      text,
+      voiceId,
+      transcribeCode as LanguageCode
+    );
+    await audioPlayer.playAudioStream(audioStream);
+  } catch (err) {
+    console.error('[usePollyApi] Synthesis error:', err);
+    throw err;
   }
 }

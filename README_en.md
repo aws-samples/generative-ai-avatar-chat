@@ -29,20 +29,48 @@ To execute CDK, it is necessary to set up AWS credentials. Please follow the ste
 #### Setting up the Base Model for Use with Amazon Bedrock
 
 > [!IMPORTANT]
-> Prior application is necessary to use the Anthropic Claude model in this repository. Open the [Model access screen (ap-northeast-1)](https://ap-northeast-1.console.aws.amazon.com/bedrock/home?region=ap-northeast-1#/modelaccess), check Anthropic Claude Instant and Save changes. Please note that application is required for each region and model you wish to use.
+> Prior application is necessary to use the Anthropic Claude model in this repository. Open the [Model access screen (ap-northeast-1)](https://ap-northeast-1.console.aws.amazon.com/bedrock/home?region=ap-northeast-1#/modelaccess), check Anthropic Claude Haiku and Save changes. Please note that application is required for each region and model you wish to use.
 
-By default, the `Claude 3-5 Sonnet` model in the Tokyo region (`ap-northeast-1`) is set for use. If you wish to change the region and model used, please modify `bedrock-region` and `bedrock-model-id` in `packages/cdk/cdk.json`. Model IDs can be found [here](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
+By default, the `Claude Haiku 4.5` model via Japan Cross Region Inference in the Tokyo region (`ap-northeast-1`) is set for use. If you wish to change the region and model used, please modify `bedrock-region` and `bedrock-model-id` in `packages/cdk/cdk.json`. Model IDs can be found [here](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
 
-**This repository is compatible with any model supported by the [Amazon Bedrock Converse API](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html).**
+**This application uses the [Strands Agents SDK](https://github.com/aws-samples/strands-agents) and is compatible with any model supported by the Bedrock Converse API.**
 
 #### RAG Type Configuration
 
-This application supports two options for RAG (Retrieval-Augmented Generation) implementation:
+This application supports the following options for RAG (Retrieval-Augmented Generation) implementation:
 
-- **Knowledgebase** (default): Uses Amazon Bedrock Knowledge Base
-- **Kendra**: Uses Amazon Kendra
+* **Knowledge Base**: Uses Amazon Bedrock Knowledge Base
+* **Kendra**: Uses Amazon Kendra
+* **Both**: Use both RAG sources simultaneously (Agent selects appropriately)
+* **None**: Answer with general knowledge without RAG
 
-The default is set to `knowledgebase`. If you want to use Kendra, change the `ragType` in `packages/cdk/cdk.json` to `"kendra"`.
+By default, only `Knowledge Base` is enabled. If you want to change the configuration, please modify `rag.kendra.enabled` and `rag.knowledgeBase.enabled` in `packages/cdk/cdk.json`.
+
+```json
+{
+  "context": {
+    "rag": {
+      "kendra": {
+        "enabled": false
+      },
+      "knowledgeBase": {
+        "enabled": true
+      }
+    }
+  }
+}
+```
+
+> [!WARNING]
+> **Notes when enabling both RAG sources**
+> 
+> If you set both to `true`, the Agent will search documents from both RAG sources, which may slow down response times. It is recommended to clearly distinguish the content of documents stored in each RAG source so that the Agent can select the appropriate tool.
+> 
+> **Recommended usage examples:**
+> * **Knowledge Base**: Product manuals, technical specifications, etc.
+> * **Kendra**: Internal FAQs, operational procedures, etc.
+> 
+> Please clarify the role of each RAG source and place documents appropriately.
 
 ### Deployment Steps
 
@@ -109,7 +137,9 @@ When using Amazon Kendra, it is necessary to perform a `Sync` with Kendra to ref
 
 #### If you want to update documents
 
-1. Store the documents in `packages/cdk/docs`.
+1. Store the documents.
+   * **For Knowledge Base**: Store in `packages/cdk/docs/kb`
+   * **For Kendra**: Store in `packages/cdk/docs/kendra`
 2. Redeploy the application as per the `Redeployment Procedure` (the documents will be uploaded automatically).
 3. **For Knowledge Base**: Perform a `Sync` as per the above document reflection procedure.
 4. **For Kendra**: Perform a `Sync` as per the above document reflection procedure.

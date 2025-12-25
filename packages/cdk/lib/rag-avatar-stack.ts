@@ -3,7 +3,6 @@ import { Construct } from 'constructs';
 import {
   Api,
   KendraIndex,
-  S3BucketWithDocs,
   BedrockKnowledgeBase,
 } from './constructs';
 import { Frontend } from './constructs/frontend';
@@ -16,33 +15,31 @@ export class RagAvatarStack extends cdk.Stack {
       this.node.tryGetContext('bedrock-region') || 'ap-northeast-1';
     const bedrockModelId: string =
       this.node.tryGetContext('bedrock-model-id') ||
-      'anthropic.claude-instant-v1';
-    const ragType: string = this.node.tryGetContext('ragType') || 'kendra';
-
-    const s3BucketWithDocs = new S3BucketWithDocs(this, 'S3BucketWithDocs');
+      'jp.anthropic.claude-haiku-4-5-20251001-v1:0';
+    
+    // 新しいRAG設定を読み取る
+    const ragConfig = this.node.tryGetContext('rag') || {};
+    const enableKendra = ragConfig.kendra?.enabled || false;
+    const enableKnowledgeBase = ragConfig.knowledgeBase?.enabled || false;
 
     let kendraIndex: KendraIndex | undefined;
-    let knowledgeBase: any | undefined;
+    let knowledgeBase: BedrockKnowledgeBase | undefined;
 
-    if (ragType === 'kendra') {
-      kendraIndex = new KendraIndex(this, 'KendraIndex', {
-        dataSourceBucket: s3BucketWithDocs.bucket,
-      });
-    } else if (ragType === 'knowledgebase') {
-      knowledgeBase = new BedrockKnowledgeBase(this, 'KnowledgeBase', {
-        dataSourceBucket: s3BucketWithDocs.bucket,
-      });
-    } else {
-      throw new Error(
-        `Invalid ragType: ${ragType}. Must be 'kendra' or 'knowledgebase'`
-      );
+    // 有効化されたRAG Constructsのみを作成
+    if (enableKendra) {
+      kendraIndex = new KendraIndex(this, 'KendraIndex');
+    }
+    
+    if (enableKnowledgeBase) {
+      knowledgeBase = new BedrockKnowledgeBase(this, 'KnowledgeBase');
     }
 
-    // 統一APIの作成（両方のケースで実行）
+    // 統一APIの作成
     const api = new Api(this, 'Api', {
       bedrockRegion,
       bedrockModelId,
-      ragType: ragType as 'kendra' | 'knowledgebase',
+      enableKendra,
+      enableKnowledgeBase,
       kendraIndex: kendraIndex?.index,
       knowledgeBase: knowledgeBase?.knowledgeBase,
     });
