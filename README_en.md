@@ -74,6 +74,20 @@ By default, only `Knowledge Base` is enabled. If you want to change the configur
 
 ### Deployment Steps
 
+> [!IMPORTANT]
+> **Docker ARM64 Build Requirement**
+> 
+> This application builds ARM64 Docker images during deployment. If you are running on an x86_64 machine, you need to set up Docker Buildx with QEMU for ARM64 emulation.
+> 
+> ```bash
+> # Register QEMU
+> docker run --rm --privileged tonistiigi/binfmt:latest --install arm64
+> 
+> # Create and start a Buildx builder
+> docker buildx create --name arm-builder --platform linux/arm64 --use
+> docker buildx inspect arm-builder --bootstrap
+> ```
+
 1. Please clone this repository.
 1. Open the **root directory** of the cloned repository in your terminal. All following commands should be executed in the **root directory**.
 1. Install the necessary packages with the following command.

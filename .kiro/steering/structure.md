@@ -38,10 +38,10 @@ cdk/
 ### 主要なCDKファイル
 
 - `lib/rag-avatar-stack.ts`：メインスタック定義
-- `lambda/streamQuestion.ts`：LLMストリーミングレスポンス用Lambdaハンドラー
-- `lambda/utils/bedrockApi.ts`：Bedrock APIラッパー
-- `lambda/utils/kendraApi.ts`：Kendra APIラッパー
-- `lambda/utils/knowledgeBaseApi.ts`：Bedrock Knowledge Base APIラッパー
+- `lib/parameters.ts`：環境別パラメータ管理（RAG設定、モデル設定）
+- `lib/constructs/agentcore.ts`：AgentCore Runtime Construct（Dockerイメージビルド + IAMロール）
+- `lib/constructs/presigned-url-api.ts`：Presigned URL Lambda Construct
+- `lambda/presigned-url/`：Presigned URL発行Lambda（Python Docker ARM64）
 
 ## Webパッケージ（`packages/web/`）
 
@@ -74,7 +74,7 @@ web/
 
 - `src/App.tsx`：メインアプリケーションレイアウトと状態管理
 - `src/components/Avatar.tsx`：リップシンク機能付きBabylon.js 3Dアバター
-- `src/hooks/useQuestionApi.ts`：ストリーミングレスポンス用AWS Lambda呼び出し
+- `src/hooks/useQuestionApi.ts`：WebSocket接続（AgentCore Runtime経由のPresigned URL）
 - `src/i18n/`：言語別翻訳
 
 ## Typesパッケージ（`packages/types/`）
@@ -85,7 +85,21 @@ web/
 types/
 └── src/
     ├── index.d.ts     # メイン型エクスポート
-    └── protocol.d.ts  # APIプロトコル型
+    └── protocol.d.ts  # APIプロトコル型（WebSocketメッセージ型含む）
+```
+
+## Agentパッケージ（`packages/cdk/agent/`）
+
+AgentCore Runtime にデプロイされる Python エージェント。`@app.websocket` で WebSocket 双方向ストリーミングを処理。
+
+```
+cdk/agent/
+├── agent.py           # BedrockAgentCoreApp + WebSocket ハンドラ
+├── requirements.txt   # Python依存パッケージ
+└── tools/
+    ├── __init__.py
+    ├── kendra_tool.py          # Kendra検索ツール
+    └── knowledge_base_tool.py  # Knowledge Base検索ツール
 ```
 
 ## 設定規約

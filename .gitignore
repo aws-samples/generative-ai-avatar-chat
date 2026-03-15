@@ -9,6 +9,23 @@ node_modules/
 dist/
 build/
 cdk.out/
+*.js
+*.d.ts
+*.js.map
+!eslint.config.mjs
+
+# Python
+__pycache__/
+.venv/
+uv.lock
+
+# Kiro
+.kiro/*
+!.kiro/steering/
+.kiro/steering/*
+!.kiro/steering/product.md
+!.kiro/steering/structure.md
+!.kiro/steering/tech.md
 
 # CDK outputs
 output.json

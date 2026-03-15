@@ -17,28 +17,19 @@
   - Lambda関数を使用したカスタムリソース
 - **テスト**：Jest
 
-### Lambda関数アーキテクチャ（2025-12-05更新）
+### AgentCore Runtime エージェント（agentパッケージ）
 
-streamQuestion Lambda関数はStrands Agents SDKを使用したAgent的な実装に移行しました。
+- **ランタイム**：Python 3.12
+- **フレームワーク**：Bedrock AgentCore Runtime SDK（`bedrock-agentcore-starter-toolkit`）
+- **AI Agent**：Strands Agents（Python版）
+- **通信**：WebSocket双方向ストリーミング（`@app.websocket`デコレータ）
+- **デプロイ**：`agentcore deploy` でAgentCore Runtimeにデプロイ
 
-**ファイル構成:**
-```
-lambda/
-├── streamQuestion.ts          # メインハンドラー（Strands Agent使用）
-├── agent/
-│   └── createAgent.ts        # Agent初期化ロジック
-└── tools/
-    ├── types.ts              # 共通型定義
-    ├── kendraTool.ts         # Kendra Tool（API呼び出し含む）
-    └── knowledgeBaseTool.ts  # Knowledge Base Tool（API呼び出し含む）
-```
+### Presigned URL Lambda
 
-**主な特徴:**
-- Strands Agentによる自動ツール呼び出し
-- Claude Haiku 4.5（日本Cross Region Inference経由）をデフォルト使用
-- 柔軟なRAG設定（Kendra/Knowledge Base/両方/なし）
-- LLMによる多言語対応（翻訳API不要）
-- 各RAGソースが専用S3バケットを管理
+- **ランタイム**：Python 3.12（Docker ARM64）
+- **役割**：`AgentCoreRuntimeClient.generate_presigned_url()` でSigV4署名付きWebSocket URLを生成
+- **認証**：Cognito Identity Pool（未認証）経由で呼び出し
 
 ## フロントエンド（Webパッケージ）
 
@@ -114,24 +105,21 @@ npm run lint -w web
 - `.prettierrc.json`：コードフォーマットルール
 - `tsconfig.json`：パッケージごとのTypeScriptコンパイラオプション
 
-### RAG設定例（cdk.json）
+### RAG設定（parameters.ts）
 
-```json
-{
-  "context": {
-    "bedrock-region": "ap-northeast-1",
-    "bedrock-model-id": "jp.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "rag": {
-      "kendra": {
-        "enabled": false
-      },
-      "knowledgeBase": {
-        "enabled": true
-      }
-    }
-  }
-}
+```typescript
+// packages/cdk/lib/parameters.ts
+const defaultParameters = {
+  bedrockRegion: 'ap-northeast-1',
+  bedrockModelId: 'jp.anthropic.claude-haiku-4-5-20251001-v1:0',
+  rag: {
+    kendra: { enabled: false },
+    knowledgeBase: { enabled: true },
+  },
+};
 ```
+
+環境ごとのオーバーライドは `envOverrides` で管理。`base` 環境では Kendra + KB 両方有効。
 
 ## 開発時の注意事項
 

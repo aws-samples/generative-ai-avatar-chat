@@ -5,10 +5,11 @@
 ## 主な機能
 
 - Babylon.jsを使用した3Dアバターベースの会話インターフェース
-- Amazon BedrockまたはAmazon Kendraによる RAG（Retrieval-Augmented Generation）
+- Amazon Bedrock Knowledge Base / Amazon Kendra による RAG（Retrieval-Augmented Generation）
+- Strands Agents + AgentCore Runtime による Agentic RAG（WebSocket双方向ストリーミング）
 - Amazon Polly（音声合成）とAmazon Transcribe（音声認識）によるリアルタイム音声対話
 - 多言語対応（英語、日本語、韓国語、ベトナム語、中国語）
-- LLMモデルからのストリーミングレスポンス
+- ツール呼び出し後のテキスト・音声リセット（最終回答のみ表示）
 
 ## RAGオプション
 
@@ -16,13 +17,13 @@
 - **Knowledge Base**（デフォルト）：Amazon Bedrock Knowledge Base
 - **Kendra**：Amazon Kendra
 
-設定は `packages/cdk/cdk.json` の `ragType` フィールドで行います。
+設定は `packages/cdk/lib/parameters.ts` で環境ごとに管理します。
 
 ## LLM設定
 
-- デフォルトモデル：`ap-northeast-1` リージョンの Claude 3.5 Sonnet
+- デフォルトモデル：`ap-northeast-1` リージョンの Claude Haiku 4.5
 - Amazon Bedrock Converse API対応モデルであれば利用可能
-- モデルとリージョンは `packages/cdk/cdk.json` の `bedrock-model-id` と `bedrock-region` で設定
+- モデルとリージョンは `packages/cdk/lib/parameters.ts` で設定
 
 ## ドキュメント管理
 
