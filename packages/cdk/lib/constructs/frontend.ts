@@ -6,8 +6,8 @@ import { NodejsBuild } from 'deploy-time-build';
 import { Construct } from 'constructs';
 
 export interface FrontendProps {
-  readonly questionStreamFunctionArn: string;
   readonly idPoolId: string;
+  readonly presignedUrlFunctionArn: string;
 }
 
 export class Frontend extends Construct {
@@ -67,7 +67,7 @@ export class Frontend extends Construct {
       buildEnvironment: {
         VITE_APP_REGION: Stack.of(this).region,
         VITE_APP_IDENTITY_POOL_ID: props.idPoolId,
-        VITE_APP_QUESTION_STREAM_FUNCTION_ARN: props.questionStreamFunctionArn,
+        VITE_APP_PRESIGNED_URL_FUNCTION_ARN: props.presignedUrlFunctionArn,
       },
       outputSourceDirectory: './packages/web/dist',
       destinationBucket: assetBucket,

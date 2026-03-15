@@ -1,52 +1,62 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import {
-  Api,
-  KendraIndex,
-  BedrockKnowledgeBase,
-} from './constructs';
+import { Api, KendraIndex, BedrockKnowledgeBase } from './constructs';
+import { AgentCore } from './constructs/agentcore';
+import { PresignedUrlApi } from './constructs/presigned-url-api';
 import { Frontend } from './constructs/frontend';
+import { AppParameters } from './parameters';
+
+export interface RagAvatarStackProps extends cdk.StackProps {
+  params: AppParameters;
+}
 
 export class RagAvatarStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: RagAvatarStackProps) {
     super(scope, id, props);
 
-    const bedrockRegion: string =
-      this.node.tryGetContext('bedrock-region') || 'ap-northeast-1';
-    const bedrockModelId: string =
-      this.node.tryGetContext('bedrock-model-id') ||
-      'jp.anthropic.claude-haiku-4-5-20251001-v1:0';
-    
-    // 新しいRAG設定を読み取る
-    const ragConfig = this.node.tryGetContext('rag') || {};
-    const enableKendra = ragConfig.kendra?.enabled || false;
-    const enableKnowledgeBase = ragConfig.knowledgeBase?.enabled || false;
+    const { params } = props;
 
     let kendraIndex: KendraIndex | undefined;
     let knowledgeBase: BedrockKnowledgeBase | undefined;
 
-    // 有効化されたRAG Constructsのみを作成
-    if (enableKendra) {
+    if (params.rag.kendra.enabled) {
       kendraIndex = new KendraIndex(this, 'KendraIndex');
     }
-    
-    if (enableKnowledgeBase) {
+    if (params.rag.knowledgeBase.enabled) {
       knowledgeBase = new BedrockKnowledgeBase(this, 'KnowledgeBase');
     }
 
-    // 統一APIの作成
+    const envVars: Record<string, string> = {};
+    if (params.rag.kendra.enabled && kendraIndex) {
+      envVars.ENABLE_KENDRA = 'true';
+      envVars.KENDRA_INDEX_ID = kendraIndex.index.ref;
+    }
+    if (params.rag.knowledgeBase.enabled && knowledgeBase) {
+      envVars.ENABLE_KNOWLEDGE_BASE = 'true';
+      envVars.KNOWLEDGE_BASE_ID = knowledgeBase.knowledgeBase.ref;
+    }
+
+    const agentCore = new AgentCore(this, 'AgentCore', {
+      bedrockRegion: params.bedrockRegion,
+      bedrockModelId: params.bedrockModelId,
+      environmentVariables: envVars,
+    });
+
+    const presignedUrlApi = new PresignedUrlApi(this, 'PresignedUrlApi', {
+      runtimeArn: agentCore.runtimeArn,
+    });
+
     const api = new Api(this, 'Api', {
-      bedrockRegion,
-      bedrockModelId,
-      enableKendra,
-      enableKnowledgeBase,
+      enableKendra: params.rag.kendra.enabled,
+      enableKnowledgeBase: params.rag.knowledgeBase.enabled,
       kendraIndex: kendraIndex?.index,
       knowledgeBase: knowledgeBase?.knowledgeBase,
+      presignedUrlFunction: presignedUrlApi.presignedUrlFunction,
     });
 
     new Frontend(this, 'Frontend', {
-      questionStreamFunctionArn: api.questionStreamFunction.functionArn,
       idPoolId: api.idPool.identityPoolId,
+      presignedUrlFunctionArn: presignedUrlApi.presignedUrlFunction.functionArn,
     });
   }
 }

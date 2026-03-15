@@ -17,16 +17,6 @@
     ]
   },
   "context": {
-    "bedrock-region": "ap-northeast-1",
-    "bedrock-model-id": "jp.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "rag": {
-      "kendra": {
-        "enabled": true
-      },
-      "knowledgeBase": {
-        "enabled": true
-      }
-    },
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": [

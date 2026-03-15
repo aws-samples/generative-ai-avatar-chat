@@ -16,7 +16,7 @@ const cognito = new CognitoIdentityClient({ region });
 
 async function getPollyClient() {
   const credentials = await fromCognitoIdentityPool({
-    client: cognito,
+    client: cognito as any,
     identityPoolId: idPoolId,
   });
 
