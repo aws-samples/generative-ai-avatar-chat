@@ -1,0 +1,10 @@
+[project]
+name = "rag-avatar-agent"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "bedrock-agentcore-starter-toolkit",
+    "strands-agents",
+    "strands-agents-tools",
+    "boto3",
+]
