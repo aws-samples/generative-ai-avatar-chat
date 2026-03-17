@@ -8,7 +8,7 @@ This is a sample implementation of a Generative AI chatbot with a 3D avatar as t
 
 ## Architecture
 
-<img src="docs/picture/architecture_v5.png" width="600">
+<img src="docs/picture/architecture_v6.png" width="600">
 
 ## Deployment
 
@@ -31,7 +31,7 @@ To execute CDK, it is necessary to set up AWS credentials. Please follow the ste
 > [!IMPORTANT]
 > Prior application is necessary to use the Anthropic Claude model in this repository. Open the [Model access screen (ap-northeast-1)](https://ap-northeast-1.console.aws.amazon.com/bedrock/home?region=ap-northeast-1#/modelaccess), check Anthropic Claude Haiku and Save changes. Please note that application is required for each region and model you wish to use.
 
-By default, the `Claude Haiku 4.5` model via Japan Cross Region Inference in the Tokyo region (`ap-northeast-1`) is set for use. If you wish to change the region and model used, please modify `bedrock-region` and `bedrock-model-id` in `packages/cdk/cdk.json`. Model IDs can be found [here](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
+By default, the `Claude Haiku 4.5` model via Japan Cross Region Inference in the Tokyo region (`ap-northeast-1`) is set for use. If you wish to change the region and model used, please modify `bedrockRegion` and `bedrockModelId` in `packages/cdk/lib/parameters.ts`. Model IDs can be found [here](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
 
 **This application uses the [Strands Agents SDK](https://github.com/aws-samples/strands-agents) and is compatible with any model supported by the Bedrock Converse API.**
 
@@ -44,21 +44,63 @@ This application supports the following options for RAG (Retrieval-Augmented Gen
 * **Both**: Use both RAG sources simultaneously (Agent selects appropriately)
 * **None**: Answer with general knowledge without RAG
 
-By default, only `Knowledge Base` is enabled. If you want to change the configuration, please modify `rag.kendra.enabled` and `rag.knowledgeBase.enabled` in `packages/cdk/cdk.json`.
+By default, only `Knowledge Base` is enabled. If you want to change the configuration, please modify `defaultParameters` or `envOverrides` in `packages/cdk/lib/parameters.ts`.
 
-```json
-{
-  "context": {
-    "rag": {
-      "kendra": {
-        "enabled": false
-      },
-      "knowledgeBase": {
-        "enabled": true
-      }
-    }
-  }
-}
+```typescript
+// packages/cdk/lib/parameters.ts
+const defaultParameters: AppParameters = {
+  bedrockRegion: 'ap-northeast-1',
+  bedrockModelId: 'jp.anthropic.claude-haiku-4-5-20251001-v1:0',
+  rag: {
+    kendra: { enabled: false },
+    knowledgeBase: { enabled: true },
+  },
+  waf: {
+    enabled: false,
+  },
+};
+
+// Per-environment overrides (only specify differences from defaultParameters)
+const envOverrides: Record<string, Partial<AppParameters>> = {
+  base: {},   // backward compatible (stack name: RagAvatarStack)
+  dev: {},
+  stg: {},
+  prod: {
+    rag: {
+      kendra: { enabled: true },
+      knowledgeBase: { enabled: true },
+    },
+    waf: {
+      enabled: true,
+      allowedCountryCodes: ['JP'],
+    },
+  },
+};
+```
+
+#### WAF (Web Application Firewall) Configuration
+
+Set `waf.enabled` to `true` to automatically attach a WAF WebACL to CloudFront. The following options are available:
+
+- `allowedIpV4AddressRanges`: List of allowed global IPv4 CIDRs
+- `allowedIpV6AddressRanges`: List of allowed global IPv6 CIDRs
+- `allowedCountryCodes`: List of allowed country codes (e.g. `['JP']`)
+
+The WAF stack is automatically deployed to `us-east-1` as required for CloudFront.
+
+#### Switching Environments
+
+You can switch environments using the `ENV` environment variable. The stack name becomes `RagAvatarStack-{ENV}` (or `RagAvatarStack` when unset or `base`).
+
+```bash
+# base environment (default)
+npm run cdk:deploy
+
+# dev environment
+ENV=dev npm run cdk:deploy
+
+# prod environment
+ENV=prod npm run cdk:deploy
 ```
 
 > [!WARNING]
@@ -187,6 +229,7 @@ Note that these steps assume that your local PC is set up for React development.
     VITE_APP_REGION=Deployed region name
     VITE_APP_IDENTITY_POOL_ID=Value of RagAvatarStack.ApiIdPoolId from Outputs
     VITE_APP_QUESTION_STREAM_FUNCTION_ARN=Value of RagAvatarStack.ApiQuestionStreamFunctionARN from Outputs
+    VITE_APP_PRESIGNED_URL_FUNCTION_ARN=Value of RagAvatarStack.PresignedUrlApiPresignedUrlFunctionARN from Outputs (only when using AgentCore Runtime)
     ```
 
     **How to check Outputs**

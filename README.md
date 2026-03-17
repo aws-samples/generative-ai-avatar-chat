@@ -9,7 +9,7 @@
 
 ## アーキテクチャ
 
-<img src="docs/picture/architecture_v5.png" width="600">
+<img src="docs/picture/architecture_v6.png" width="600">
 
 ## デプロイ
 
@@ -56,9 +56,8 @@ const defaultParameters: AppParameters = {
     kendra: { enabled: false },
     knowledgeBase: { enabled: true },
   },
-  agentcore: {
-    region: 'ap-northeast-1',
-    runtimeArn: '',
+  waf: {
+    enabled: false,
   },
 };
 
@@ -72,9 +71,23 @@ const envOverrides: Record<string, Partial<AppParameters>> = {
       kendra: { enabled: true },
       knowledgeBase: { enabled: true },
     },
+    waf: {
+      enabled: true,
+      allowedCountryCodes: ['JP'],
+    },
   },
 };
 ```
+
+#### WAF（Web Application Firewall）設定
+
+`waf.enabled` を `true` にすると、CloudFront に WAF WebACL が自動的に紐づけられます。以下のオプションで制限を設定できます：
+
+- `allowedIpV4AddressRanges`: 許可するグローバル IPv4 CIDR のリスト
+- `allowedIpV6AddressRanges`: 許可するグローバル IPv6 CIDR のリスト
+- `allowedCountryCodes`: 許可する国コードのリスト（例: `['JP']`）
+
+WAF スタックは CloudFront 用に `us-east-1` に自動デプロイされます。
 
 #### 環境の切り替え
 
