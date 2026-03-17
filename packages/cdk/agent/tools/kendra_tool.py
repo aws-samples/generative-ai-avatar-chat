@@ -1,19 +1,17 @@
-import os
-
 import boto3
 from strands import tool
 
+from config import BEDROCK_REGION, KENDRA_INDEX_ID
+
 kendra_client = boto3.client(
     "kendra",
-    region_name=os.environ.get("BEDROCK_REGION", "ap-northeast-1"),
+    region_name=BEDROCK_REGION,
 )
-INDEX_ID = os.environ.get("KENDRA_INDEX_ID", "")
 
 
 @tool
 def kendra_retrieve_tool(query: str) -> dict:
     """Kendraを使用してドキュメントを検索します。
-    Amazon Bedrock User Guide（技術ドキュメント）を検索対象としています。
     ドキュメントは日本語で書かれています。ユーザーの質問が他の言語の場合は、クエリを日本語に翻訳してから検索してください。
 
     Args:
@@ -21,7 +19,7 @@ def kendra_retrieve_tool(query: str) -> dict:
     """
     try:
         result = kendra_client.retrieve(
-            IndexId=INDEX_ID,
+            IndexId=KENDRA_INDEX_ID,
             QueryText=query,
             AttributeFilter={
                 "AndAllFilters": [

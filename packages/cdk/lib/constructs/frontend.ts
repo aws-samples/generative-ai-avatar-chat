@@ -8,6 +8,7 @@ import { Construct } from 'constructs';
 export interface FrontendProps {
   readonly idPoolId: string;
   readonly presignedUrlFunctionArn: string;
+  readonly webAclId?: string;
 }
 
 export class Frontend extends Construct {
@@ -31,6 +32,7 @@ export class Frontend extends Construct {
         origin: s3Origin,
       },
       defaultRootObject: 'index.html',
+      webAclId: props.webAclId,
       errorResponses: [
         {
           httpStatus: 404,

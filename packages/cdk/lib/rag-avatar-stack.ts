@@ -2,12 +2,12 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Api, KendraIndex, BedrockKnowledgeBase } from './constructs';
 import { AgentCore } from './constructs/agentcore';
-import { PresignedUrlApi } from './constructs/presigned-url-api';
 import { Frontend } from './constructs/frontend';
 import { AppParameters } from './parameters';
 
 export interface RagAvatarStackProps extends cdk.StackProps {
   params: AppParameters;
+  webAclId?: string;
 }
 
 export class RagAvatarStack extends cdk.Stack {
@@ -42,21 +42,14 @@ export class RagAvatarStack extends cdk.Stack {
       environmentVariables: envVars,
     });
 
-    const presignedUrlApi = new PresignedUrlApi(this, 'PresignedUrlApi', {
-      runtimeArn: agentCore.runtimeArn,
-    });
-
     const api = new Api(this, 'Api', {
-      enableKendra: params.rag.kendra.enabled,
-      enableKnowledgeBase: params.rag.knowledgeBase.enabled,
-      kendraIndex: kendraIndex?.index,
-      knowledgeBase: knowledgeBase?.knowledgeBase,
-      presignedUrlFunction: presignedUrlApi.presignedUrlFunction,
+      runtimeArn: agentCore.runtimeArn,
     });
 
     new Frontend(this, 'Frontend', {
       idPoolId: api.idPool.identityPoolId,
-      presignedUrlFunctionArn: presignedUrlApi.presignedUrlFunction.functionArn,
+      presignedUrlFunctionArn: api.presignedUrlFunction.functionArn,
+      webAclId: props.webAclId,
     });
   }
 }
