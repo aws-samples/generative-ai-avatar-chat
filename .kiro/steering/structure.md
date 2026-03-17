@@ -21,14 +21,15 @@ cdk/
 ├── bin/              # CDKアプリエントリーポイント
 ├── lib/
 │   └── constructs/   # 再利用可能なCDK Construct
-│       ├── backend-api.ts       # Lambda + API Gateway
+│       ├── backend-api.ts       # Cognito IdP + Presigned URL Lambda
 │       ├── frontend.ts          # CloudFront + S3
+│       ├── agentcore.ts         # AgentCore Runtime（Docker + IAM）
 │       ├── kendra-index.ts      # Kendra RAGセットアップ
 │       ├── knowledgebase.ts     # Bedrock KB RAGセットアップ
-│       └── s3-data-source.ts    # S3ドキュメントストレージ
+│       └── waf.ts               # WAF WebACL（IP・国制限）
 ├── lambda/           # Lambda関数コード
-│   ├── prompts/      # LLMプロンプトテンプレート
-│   └── utils/        # AWSサービスAPIラッパー
+│   └── presigned-url/ # Presigned URL発行Lambda（Python Docker ARM64）
+├── agent/            # AgentCore Runtime エージェント（Python）
 ├── custom-resources/ # CDKカスタムリソースハンドラー
 ├── docs/             # RAG用ドキュメント（S3にアップロード）
 ├── test/             # Jestテスト
@@ -38,10 +39,11 @@ cdk/
 ### 主要なCDKファイル
 
 - `lib/rag-avatar-stack.ts`：メインスタック定義
-- `lib/parameters.ts`：環境別パラメータ管理（RAG設定、モデル設定）
+- `lib/parameters.ts`：環境別パラメータ管理（RAG設定、モデル設定、WAF設定）
+- `lib/waf-stack.ts`：WAF 専用スタック（us-east-1 にデプロイ）
+- `lib/constructs/backend-api.ts`：Cognito Identity Pool + Presigned URL Lambda Construct
 - `lib/constructs/agentcore.ts`：AgentCore Runtime Construct（Dockerイメージビルド + IAMロール）
-- `lib/constructs/presigned-url-api.ts`：Presigned URL Lambda Construct
-- `lambda/presigned-url/`：Presigned URL発行Lambda（Python Docker ARM64）
+- `lib/constructs/waf.ts`：WAF WebACL Construct（IP制限・国制限・Managed Rules）
 
 ## Webパッケージ（`packages/web/`）
 
@@ -57,9 +59,13 @@ web/
 │   ├── hooks/        # カスタムReact Hooks
 │   │   ├── useAvatar.ts         # アバターアニメーションロジック
 │   │   ├── useQuestion.ts       # 質問送信
-│   │   ├── useQuestionApi.ts    # Lambda呼び出し
+│   │   ├── useQuestionApi.ts    # WebSocket接続（Presigned URL経由）
 │   │   ├── usePollyApi.ts       # 音声合成
 │   │   └── useTranscribeStreaming.ts  # 音声認識
+│   ├── utils/        # ユーティリティ
+│   │   ├── TextSegmenter.ts     # ストリーミングテキスト分割
+│   │   ├── VoiceQueue.ts        # 音声再生キュー
+│   │   └── AudioPlayer.ts       # オーディオ再生
 │   ├── i18n/         # 国際化
 │   │   ├── en/, ja/, ko/, vi/, zh/
 │   │   └── index.ts
@@ -95,6 +101,9 @@ AgentCore Runtime にデプロイされる Python エージェント。`@app.web
 ```
 cdk/agent/
 ├── agent.py           # BedrockAgentCoreApp + WebSocket ハンドラ
+├── config.py          # 環境変数の一元管理
+├── prompt.py          # システムプロンプト構築（データソース説明含む）
+├── cli.py             # ローカルテスト用 CLI
 ├── requirements.txt   # Python依存パッケージ
 └── tools/
     ├── __init__.py

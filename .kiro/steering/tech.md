@@ -12,8 +12,6 @@
 - **ランタイム**：Node.js with TypeScript（ES2020ターゲット、CommonJSモジュール）
 - **主な依存関係**：
   - AWS SDK v3（Bedrock、Kendra、Bedrock Agent Runtime）
-  - Strands Agents SDK v0.1.1（Agentオーケストレーション）
-  - Zod（スキーマ検証）
   - Lambda関数を使用したカスタムリソース
 - **テスト**：Jest
 
@@ -99,7 +97,8 @@ npm run lint -w web
 
 ## 設定ファイル
 
-- `packages/cdk/cdk.json`：CDKアプリ設定、RAG設定（`rag.kendra.enabled`、`rag.knowledgeBase.enabled`）、Bedrockモデル設定
+- `packages/cdk/cdk.json`：CDKアプリ設定
+- `packages/cdk/lib/parameters.ts`：RAG設定、Bedrockモデル設定、WAF設定（環境別オーバーライド）
 - `packages/web/.env.local`：ローカルフロントエンド環境変数（コミットされない）
 - `packages/web/.env`：フロントエンド環境変数テンプレート
 - `.prettierrc.json`：コードフォーマットルール
@@ -119,7 +118,7 @@ const defaultParameters = {
 };
 ```
 
-環境ごとのオーバーライドは `envOverrides` で管理。`base` 環境では Kendra + KB 両方有効。
+環境ごとのオーバーライドは `envOverrides` で管理。
 
 ## 開発時の注意事項
 
