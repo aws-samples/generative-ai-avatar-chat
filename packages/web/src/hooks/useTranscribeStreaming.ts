@@ -51,7 +51,7 @@ function useTranscribeStreaming(props: UseTranscribeStreamingProps) {
   const client = new TranscribeStreamingClient({
     region: props.region,
     credentials: fromCognitoIdentityPool({
-      client: cognito,
+      client: cognito as any,
       identityPoolId: props.identityPoolId,
     }),
   });

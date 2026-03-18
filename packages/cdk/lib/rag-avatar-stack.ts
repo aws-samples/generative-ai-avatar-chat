@@ -1,35 +1,60 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Api, KendraIndex, S3DataSource } from './constructs';
+import { Api, KendraIndex, BedrockKnowledgeBase } from './constructs';
+import { AgentCore } from './constructs/agentcore';
 import { Frontend } from './constructs/frontend';
+import { AppParameters } from './parameters';
+
+export interface RagAvatarStackProps extends cdk.StackProps {
+  params: AppParameters;
+  webAclId?: string;
+  envName?: string;
+}
 
 export class RagAvatarStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: RagAvatarStackProps) {
     super(scope, id, props);
 
-    const bedrockRegion: string =
-      this.node.tryGetContext('bedrock-region') || 'ap-northeast-1';
-    const bedrockModelId: string =
-      this.node.tryGetContext('bedrock-model-id') ||
-      'anthropic.claude-instant-v1';
+    const { params } = props;
 
-    const kendraIndex = new KendraIndex(this, 'KendraIndex');
+    let kendraIndex: KendraIndex | undefined;
+    let knowledgeBase: BedrockKnowledgeBase | undefined;
 
-    const dataSource = new S3DataSource(this, 'S3DataSource', {
-      index: kendraIndex.index,
+    if (params.rag.kendra.enabled) {
+      kendraIndex = new KendraIndex(this, 'KendraIndex', {
+        envName: props.envName,
+      });
+    }
+    if (params.rag.knowledgeBase.enabled) {
+      knowledgeBase = new BedrockKnowledgeBase(this, 'KnowledgeBase', {
+        envName: props.envName,
+      });
+    }
+
+    const envVars: Record<string, string> = {};
+    if (params.rag.kendra.enabled && kendraIndex) {
+      envVars.ENABLE_KENDRA = 'true';
+      envVars.KENDRA_INDEX_ID = kendraIndex.index.ref;
+    }
+    if (params.rag.knowledgeBase.enabled && knowledgeBase) {
+      envVars.ENABLE_KNOWLEDGE_BASE = 'true';
+      envVars.KNOWLEDGE_BASE_ID = knowledgeBase.knowledgeBase.ref;
+    }
+
+    const agentCore = new AgentCore(this, 'AgentCore', {
+      bedrockRegion: params.bedrockRegion,
+      bedrockModelId: params.bedrockModelId,
+      environmentVariables: envVars,
     });
 
-    dataSource.node.addDependency(kendraIndex);
-
     const api = new Api(this, 'Api', {
-      bedrockRegion,
-      bedrockModelId,
-      index: kendraIndex.index,
+      runtimeArn: agentCore.runtimeArn,
     });
 
     new Frontend(this, 'Frontend', {
-      questionStreamFunctionArn: api.questionStreamFunction.functionArn,
       idPoolId: api.idPool.identityPoolId,
+      presignedUrlFunctionArn: api.presignedUrlFunction.functionArn,
+      webAclId: props.webAclId,
     });
   }
 }

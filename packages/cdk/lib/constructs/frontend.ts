@@ -6,8 +6,9 @@ import { NodejsBuild } from 'deploy-time-build';
 import { Construct } from 'constructs';
 
 export interface FrontendProps {
-  readonly questionStreamFunctionArn: string;
   readonly idPoolId: string;
+  readonly presignedUrlFunctionArn: string;
+  readonly webAclId?: string;
 }
 
 export class Frontend extends Construct {
@@ -23,13 +24,15 @@ export class Frontend extends Construct {
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
     });
-    const s3Origin = cloudfront_origins.S3BucketOrigin.withOriginAccessIdentity(assetBucket);
+    const s3Origin =
+      cloudfront_origins.S3BucketOrigin.withOriginAccessIdentity(assetBucket);
 
     this.distribution = new cloudfront.Distribution(this, 'Distribution', {
       defaultBehavior: {
         origin: s3Origin,
       },
       defaultRootObject: 'index.html',
+      webAclId: props.webAclId,
       errorResponses: [
         {
           httpStatus: 404,
@@ -66,7 +69,7 @@ export class Frontend extends Construct {
       buildEnvironment: {
         VITE_APP_REGION: Stack.of(this).region,
         VITE_APP_IDENTITY_POOL_ID: props.idPoolId,
-        VITE_APP_QUESTION_STREAM_FUNCTION_ARN: props.questionStreamFunctionArn,
+        VITE_APP_PRESIGNED_URL_FUNCTION_ARN: props.presignedUrlFunctionArn,
       },
       outputSourceDirectory: './packages/web/dist',
       destinationBucket: assetBucket,

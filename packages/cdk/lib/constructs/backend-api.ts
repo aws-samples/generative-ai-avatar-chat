@@ -1,26 +1,24 @@
-import { Duration, aws_kendra, CfnOutput, Token } from 'aws-cdk-lib';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { CfnOutput, Duration } from 'aws-cdk-lib';
+import { Architecture } from 'aws-cdk-lib/aws-lambda';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as ecr_assets from 'aws-cdk-lib/aws-ecr-assets';
 import * as idPool from 'aws-cdk-lib/aws-cognito-identitypool';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
+import * as path from 'path';
 
 export interface ApiProps {
-  bedrockRegion: string;
-  bedrockModelId: string;
-  index: aws_kendra.CfnIndex;
+  readonly runtimeArn: string;
 }
 
 export class Api extends Construct {
-  public readonly questionStreamFunction: NodejsFunction;
   public readonly idPool: idPool.IIdentityPool;
+  public readonly presignedUrlFunction: lambda.DockerImageFunction;
 
   constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
-    // -----
-    // Identity Pool の作成
-    // -----
 
+    // Cognito Identity Pool（未認証アクセス）
     const identityPool = new idPool.IdentityPool(
       this,
       'IdentityPoolForStreamingLambda',
@@ -32,49 +30,48 @@ export class Api extends Construct {
     identityPool.unauthenticatedRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: ['transcribe:*'],
+        actions: ['transcribe:*', 'polly:*'],
         resources: ['*'],
       })
     );
 
-    const questionStreamFunction = new NodejsFunction(this, 'StreamQuestion', {
-      runtime: Runtime.NODEJS_22_X,
-      entry: './lambda/streamQuestion.ts',
-      timeout: Duration.minutes(15),
-      environment: {
-        BEDROCK_REGION: props.bedrockRegion,
-        BEDROCK_MODELID: props.bedrockModelId,
-        KENDRA_INDEX_ID: props.index.attrId,
-      },
-      bundling: {
-        externalModules: [],
-        // nodeModules: ['@aws-sdk/client-bedrock-runtime'],
-      },
-    });
-    questionStreamFunction.role?.addToPrincipalPolicy(
+    // Presigned URL Lambda
+    this.presignedUrlFunction = new lambda.DockerImageFunction(
+      this,
+      'PresignedUrlFunction',
+      {
+        code: lambda.DockerImageCode.fromImageAsset(
+          path.join(__dirname, '../../lambda/presigned-url'),
+          { platform: ecr_assets.Platform.LINUX_ARM64 }
+        ),
+        architecture: Architecture.ARM_64,
+        timeout: Duration.seconds(30),
+        memorySize: 256,
+        environment: {
+          RUNTIME_ARN: props.runtimeArn,
+        },
+      }
+    );
+
+    this.presignedUrlFunction.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        resources: [Token.asString(props.index.getAtt('Arn'))],
-        actions: ['kendra:Retrieve'],
+        actions: ['bedrock-agentcore:*'],
+        resources: ['*']
       })
     );
-    questionStreamFunction.role?.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        resources: ['*'],
-        actions: ['bedrock:*', 'logs:*', 'translate:*'],
-      })
-    );
-    questionStreamFunction.grantInvoke(identityPool.unauthenticatedRole);
+
+    // Presigned URL Lambda の invoke 権限を未認証ロールに付与
+    this.presignedUrlFunction.grantInvoke(identityPool.unauthenticatedRole);
+
+    this.idPool = identityPool;
 
     new CfnOutput(this, 'IdPoolId', {
       value: identityPool.identityPoolId,
     });
-    new CfnOutput(this, 'QuestionStreamFunctionARN', {
-      value: questionStreamFunction.functionArn,
-    });
 
-    this.questionStreamFunction = questionStreamFunction;
-    this.idPool = identityPool;
+    new CfnOutput(this, 'PresignedUrlFunctionARN', {
+      value: this.presignedUrlFunction.functionArn,
+    });
   }
 }

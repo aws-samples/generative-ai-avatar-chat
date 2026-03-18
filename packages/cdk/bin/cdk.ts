@@ -2,17 +2,44 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { RagAvatarStack } from '../lib/rag-avatar-stack';
+import { WafStack } from '../lib/waf-stack';
+import { getParameters, getStackName, getWafStackName } from '../lib/parameters';
+
+const env = process.env.ENV;
+const params = getParameters(env);
+const stackName = getStackName(env);
 
 const app = new cdk.App();
-new RagAvatarStack(app, 'RagAvatarStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+
+// WAF（CloudFront 用は us-east-1 に作成する必要がある）
+let webAclId: string | undefined;
+let wafStack: WafStack | undefined;
+
+if (params.waf.enabled) {
+  const wafStackName = getWafStackName(env);
+  wafStack = new WafStack(app, wafStackName, {
+    env: {
+      account: process.env.CDK_DEFAULT_ACCOUNT,
+      region: 'us-east-1',
+    },
+    crossRegionReferences: true,
+    wafOptions: params.waf,
+    envName: env,
+  });
+  webAclId = wafStack.webAclArn;
+}
+
+const mainStack = new RagAvatarStack(app, stackName, {
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION,
+  },
+  crossRegionReferences: params.waf.enabled,
+  params,
+  webAclId,
+  envName: env,
 });
+
+if (wafStack) {
+  mainStack.addDependency(wafStack);
+}

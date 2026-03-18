@@ -4,7 +4,7 @@ import { Engine, Scene } from 'react-babylonjs';
 import { Color4, Vector3 } from '@babylonjs/core';
 import Avatar from './components/Avatar';
 import useAvatar from './hooks/useAvatar';
-import useQuestion from './hooks/useQuestion';
+import useQuestion, { useQuestionState } from './hooks/useQuestion';
 import InputQuestion from './components/InputQuestion';
 import { produce } from 'immer';
 import Select from './components/Select';
@@ -13,6 +13,9 @@ import './i18n';
 import { LANGUAGE_OPTIONS } from './i18n';
 import { useTranslation } from 'react-i18next';
 import { useTranscribeStreamingState } from './hooks/useTranscribeStreaming';
+import VoiceOutputToggle from './components/VoiceOutputToggle';
+import MarkdownRenderer from './components/MarkdownRenderer';
+import { useIdleReset } from './hooks/useIdleReset';
 
 const App: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -23,8 +26,22 @@ const App: React.FC = () => {
 
   const { recording } = useTranscribeStreamingState();
 
-  const { startThinking, stopThinking, startSpeech } = useAvatar();
-  const { answerText, question } = useQuestion();
+  const { avatarState, stateId } = useAvatar();
+  const { answerText, question, initiateAnswerText } = useQuestion();
+  const { setVoiceOutputEnabled, voiceOutputEnabled, isStreaming, isToolCallInProgress } = useQuestionState();
+
+  // Handle automatic reset to initial state based on avatar state transitions
+  useIdleReset(avatarState, stateId, () => {
+    setQuestionedContents(['']);
+    initiateAnswerText();
+  });
+
+  const handleVoiceOutputToggle = useCallback(
+    (enabled: boolean) => {
+      setVoiceOutputEnabled(enabled);
+    },
+    [setVoiceOutputEnabled]
+  );
 
   const onSendQuestion = useCallback(
     (questionContent: string) => {
@@ -36,28 +53,23 @@ const App: React.FC = () => {
           draft.push('');
         })
       );
-      startThinking();
       try {
         question(
           questionContent,
           language,
-          LANGUAGE_OPTIONS.filter((l) => l.value === language)[0].code,
-          startSpeech
+          LANGUAGE_OPTIONS.filter((l) => l.value === language)[0].code
         ).finally(() => {
           setIsLoading(false);
         });
       } catch (e) {
         console.log(e);
-        stopThinking();
+        setIsLoading(false);
       }
     },
     [
       language,
       question,
       questionedContents,
-      startSpeech,
-      startThinking,
-      stopThinking,
     ]
   );
   const onChangeLanguage = useCallback(
@@ -74,6 +86,10 @@ const App: React.FC = () => {
     <div className="bg-background-white text-text-black relative">
       <div className="relative h-screen w-screen">
         <div className="absolute right-5 top-5 z-30 flex items-center">
+          <VoiceOutputToggle
+            initialValue={voiceOutputEnabled}
+            onToggle={handleVoiceOutputToggle}
+          />
           <PiGlobe className="mr-2 text-xl" />
           <Select
             className="w-36"
@@ -84,12 +100,12 @@ const App: React.FC = () => {
           />
         </div>
         <div className=" absolute top-10 z-10 flex w-full flex-col items-center">
-          {answerText === '' && (
+          {answerText === '' && !isStreaming && !isToolCallInProgress && (
             <div className="bg-primary text-text-white rounded-md p-5 text-2xl">
               {t('message.initial')
                 .split('\n')
-                .map((s) => (
-                  <div>{s}</div>
+                .map((s, index) => (
+                  <div key={index}>{s}</div>
                 ))}
             </div>
           )}
@@ -113,7 +129,13 @@ const App: React.FC = () => {
             {answerText !== '' && (
               <>
                 <div className="bg-primary text-text-white -mt-10 rounded-md p-5 text-2xl">
-                  {answerText}
+                  {isStreaming ? (
+                    // ストリーミング中: プレーンテキスト
+                    <div>{answerText}</div>
+                  ) : (
+                    // 完了後: マークダウンレンダリング
+                    <MarkdownRenderer content={answerText} />
+                  )}
                 </div>
                 <div className="border-t-primary h-8 w-8 border-[20px] border-transparent "></div>
               </>
