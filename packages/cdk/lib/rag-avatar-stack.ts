@@ -8,6 +8,7 @@ import { AppParameters } from './parameters';
 export interface RagAvatarStackProps extends cdk.StackProps {
   params: AppParameters;
   webAclId?: string;
+  envName?: string;
 }
 
 export class RagAvatarStack extends cdk.Stack {
@@ -20,10 +21,14 @@ export class RagAvatarStack extends cdk.Stack {
     let knowledgeBase: BedrockKnowledgeBase | undefined;
 
     if (params.rag.kendra.enabled) {
-      kendraIndex = new KendraIndex(this, 'KendraIndex');
+      kendraIndex = new KendraIndex(this, 'KendraIndex', {
+        envName: props.envName,
+      });
     }
     if (params.rag.knowledgeBase.enabled) {
-      knowledgeBase = new BedrockKnowledgeBase(this, 'KnowledgeBase');
+      knowledgeBase = new BedrockKnowledgeBase(this, 'KnowledgeBase', {
+        envName: props.envName,
+      });
     }
 
     const envVars: Record<string, string> = {};

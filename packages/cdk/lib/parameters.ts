@@ -50,10 +50,6 @@ const envOverrides: Record<string, Partial<AppParameters>> = {
   dev: {},
   stg: {},
   prod: {
-    rag: {
-      kendra: { enabled: false },
-      knowledgeBase: { enabled: false },
-    },
     waf:{
       enabled: true,
       allowedCountryCodes: ['JP'],

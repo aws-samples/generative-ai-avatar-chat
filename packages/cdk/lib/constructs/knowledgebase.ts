@@ -62,12 +62,18 @@ class OpenSearchServerlessIndex extends Construct {
   }
 }
 
+export interface BedrockKnowledgeBaseProps {
+  envName?: string;
+}
+
 export class BedrockKnowledgeBase extends Construct {
   public readonly knowledgeBase: bedrock.CfnKnowledgeBase;
   public readonly dataSourceBucket: s3.Bucket;
 
-  constructor(scope: Construct, id: string) {
+  constructor(scope: Construct, id: string, props?: BedrockKnowledgeBaseProps) {
     super(scope, id);
+
+    const suffix = props?.envName && props.envName !== 'base' ? `-${props.envName}` : '';
 
     // Knowledge Base専用のS3バケットを作成
     const dataSourceBucket = new s3.Bucket(this, 'KBDocsBucket', {
@@ -83,11 +89,11 @@ export class BedrockKnowledgeBase extends Construct {
       destinationBucket: dataSourceBucket,
     });
 
-    const collectionName = 'rag-avatar-kb-collection';
-    const vectorIndexName = 'rag-avatar-kb-vector-index';
-    const vectorField = 'rag-avatar-kb-vector-field';
-    const metadataField = 'rag-avatar-kb-metadata-field';
-    const textField = 'rag-avatar-kb-text-field';
+    const collectionName = `rag-avatar-kb-collection${suffix}`;
+    const vectorIndexName = `rag-avatar-kb-vector-index${suffix}`;
+    const vectorField = `rag-avatar-kb-vector-field${suffix}`;
+    const metadataField = `rag-avatar-kb-metadata-field${suffix}`;
+    const textField = `rag-avatar-kb-text-field${suffix}`;
 
     const knowledgeBaseRole = new iam.Role(this, 'KnowledgeBaseRole', {
       assumedBy: new iam.ServicePrincipal('bedrock.amazonaws.com'),
@@ -228,7 +234,7 @@ export class BedrockKnowledgeBase extends Construct {
     );
 
     const knowledgeBase = new bedrock.CfnKnowledgeBase(this, 'KnowledgeBase', {
-      name: 'rag-avatar-kb',
+      name: `rag-avatar-kb${suffix}`,
       roleArn: knowledgeBaseRole.roleArn,
       knowledgeBaseConfiguration: {
         type: 'VECTOR',
@@ -271,7 +277,7 @@ export class BedrockKnowledgeBase extends Construct {
         },
       },
       knowledgeBaseId: knowledgeBase.ref,
-      name: KNOWLEDGE_BASE_NAME,
+      name: `${KNOWLEDGE_BASE_NAME}${suffix}`,
     });
 
     knowledgeBase.addDependency(collection);

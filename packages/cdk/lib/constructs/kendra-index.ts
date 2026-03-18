@@ -1,14 +1,20 @@
 import { aws_kendra, aws_iam, aws_s3, aws_s3_deployment, CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
+export interface KendraIndexProps {
+  envName?: string;
+}
+
 export class KendraIndex extends Construct {
   public readonly index: aws_kendra.CfnIndex;
   public readonly dataSourceRole: aws_iam.Role;
   public readonly dataSource: aws_kendra.CfnDataSource;
   public readonly dataSourceBucket: aws_s3.Bucket;
 
-  constructor(scope: Construct, id: string) {
+  constructor(scope: Construct, id: string, props?: KendraIndexProps) {
     super(scope, id);
+
+    const suffix = props?.envName && props.envName !== 'base' ? `-${props.envName}` : '';
 
     // Kendra専用のS3バケットを作成
     const dataSourceBucket = new aws_s3.Bucket(this, 'KendraDocsBucket', {
@@ -63,7 +69,7 @@ export class KendraIndex extends Construct {
     );
 
     const index = new aws_kendra.CfnIndex(this, 'KendraIndex', {
-      name: 'rag-avatar-index',
+      name: `rag-avatar-index${suffix}`,
       edition: 'DEVELOPER_EDITION',
       roleArn: indexRole.roleArn,
     });
@@ -81,7 +87,7 @@ export class KendraIndex extends Construct {
     const dataSource = new aws_kendra.CfnDataSource(this, 'S3DataSource', {
       indexId: index.ref,
       type: 'S3',
-      name: 's3-data-source',
+      name: `s3-data-source${suffix}`,
       roleArn: dataSourceRole.roleArn,
       languageCode: 'ja',
       dataSourceConfiguration: {

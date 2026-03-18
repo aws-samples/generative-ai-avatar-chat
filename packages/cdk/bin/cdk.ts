@@ -37,6 +37,7 @@ const mainStack = new RagAvatarStack(app, stackName, {
   crossRegionReferences: params.waf.enabled,
   params,
   webAclId,
+  envName: env,
 });
 
 if (wafStack) {
