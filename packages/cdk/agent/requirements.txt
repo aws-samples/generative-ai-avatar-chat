@@ -157,7 +157,7 @@ packaging==26.0
     #   prance
 pathable==0.5.0
     # via jsonschema-path
-pillow==12.1.1
+pillow==12.2.0
     # via strands-agents-tools
 prance==25.4.8.0
     # via bedrock-agentcore-starter-toolkit
