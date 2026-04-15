@@ -202,7 +202,7 @@ python-dateutil==2.9.0.post0
     # via botocore
 python-dotenv==1.2.2
     # via pydantic-settings
-python-multipart==0.0.22
+python-multipart==0.0.26
     # via mcp
 pywin32==311 ; sys_platform == 'win32'
     # via mcp
