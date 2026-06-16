@@ -194,7 +194,7 @@ pydantic-settings==2.13.1
     #   openapi-spec-validator
 pygments==2.19.2
     # via rich
-pyjwt==2.12.1
+pyjwt==2.13.0
     # via
     #   mcp
     #   strands-agents-tools
