@@ -27,7 +27,7 @@ aws-requests-auth==0.4.3
     # via strands-agents-tools
 beautifulsoup4==4.14.3
     # via markdownify
-bedrock-agentcore==1.4.6
+bedrock-agentcore==1.6.1
     # via bedrock-agentcore-starter-toolkit
 bedrock-agentcore-starter-toolkit==0.3.3
     # via rag-avatar-agent
