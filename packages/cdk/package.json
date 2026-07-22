@@ -29,7 +29,7 @@
     "@aws-sdk/client-translate": "^3.458.0",
     "@strands-agents/sdk": "^0.1.1",
     "@types/rag-avatar-demo": "^1.0.0",
-    "aws-cdk-lib": "^2.212.0",
+    "aws-cdk-lib": "^2.260.0",
     "constructs": "^10.0.0",
     "deploy-time-build": "^0.3.46",
     "source-map-support": "^0.5.21",
